@@ -10,7 +10,7 @@ declare namespace Cloudflare {
 		BETTER_AUTH_URL: "http://localhost:3002";
 		BETTER_AUTH_SECRET: "xxxxxxxxxxxxxxxx";
 		NEXT_PUBLIC_MEDIA_BASE_URL: "http://localhost:3002";
-		WORKER_SELF_REFERENCE: Fetcher /* our-love-site */;
+		WORKER_SELF_REFERENCE: Fetcher /* ourdays */;
 	}
 }
 interface CloudflareEnv extends Cloudflare.Env {}

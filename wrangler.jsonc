@@ -8,7 +8,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "our-love-site",
+	"name": "ourdays",
 	"main": ".open-next/worker.js",
 	"compatibility_date": "2026-05-15",
 	"compatibility_flags": [
@@ -43,7 +43,7 @@
 			// Self-reference service binding, the service name must match the worker name
 			// see https://opennext.js.org/cloudflare/caching
 			"binding": "WORKER_SELF_REFERENCE",
-			"service": "our-love-site"
+			"service": "ourdays"
 		}
 	],
 	"observability": {
