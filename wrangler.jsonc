@@ -69,8 +69,7 @@
 	 */
 	// "keep_vars": true, 与下面保持2选一的关系，这个配置在于 worker 部署时不会删除文本环境变量，下面是直接将文本环境变量写在wrangler 中
 	"vars": {
-		"BETTER_AUTH_URL": "http://localhost:3002",
-		"BETTER_AUTH_SECRET": "xxxxxxxxxxxxxxxx",
-		"NEXT_PUBLIC_MEDIA_BASE_URL": "http://localhost:3002"
+		"BETTER_AUTH_URL": "https://ourdays.love",
+		"NEXT_PUBLIC_MEDIA_BASE_URL": "https://cdn.ourdays.love"
 	}
 }
