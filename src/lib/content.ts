@@ -1,0 +1,407 @@
+import { desc, eq } from "drizzle-orm";
+
+import {
+	anniversaries,
+	letters,
+	photos,
+	settings,
+	timelineEvents,
+} from "@/db/schema";
+import { getDb } from "@/db/client";
+import { storageKeyToMediaUrl } from "@/lib/r2";
+
+export type Visibility = "public" | "private";
+
+export type MemoryPhoto = {
+	id: string;
+	title: string;
+	description: string | null;
+	location: string | null;
+	takenAt: Date | null;
+	visibility: string;
+	url: string | null;
+	thumbnailUrl: string | null;
+	sortOrder: number;
+	createdAt: Date;
+};
+
+export type MemoryLetter = {
+	id: string;
+	title: string;
+	content: string;
+	author: string | null;
+	visibility: string;
+	writtenAt: Date | null;
+	createdAt: Date;
+};
+
+export type MemoryTimelineEvent = {
+	id: string;
+	title: string;
+	description: string | null;
+	eventDate: Date;
+	location: string | null;
+	visibility: string;
+	photoId: string | null;
+	createdAt: Date;
+};
+
+export type MemoryAnniversary = {
+	id: string;
+	title: string;
+	date: string;
+	type: string;
+	description: string | null;
+	isPrimary: boolean;
+	createdAt: Date;
+};
+
+export type SiteSettings = {
+	siteTitle: string;
+	coupleNames: string;
+	heroTitle: string;
+	heroSubtitle: string;
+	loveStartDate: string;
+	heroImageUrl: string | null;
+};
+
+const fallbackPhotos: MemoryPhoto[] = [
+	{
+		id: "fallback-morning",
+		title: "第一次认真散步",
+		description: "把普通的街角，变成只属于我们的坐标。",
+		location: "海边小路",
+		takenAt: new Date("2024-05-20T00:00:00.000Z"),
+		visibility: "public",
+		url: null,
+		thumbnailUrl: null,
+		sortOrder: 10,
+		createdAt: new Date("2024-05-20T00:00:00.000Z"),
+	},
+	{
+		id: "fallback-night",
+		title: "晚风和电影票",
+		description: "那天的晚风很轻，回家的路很长。",
+		location: "老电影院",
+		takenAt: new Date("2024-08-14T00:00:00.000Z"),
+		visibility: "public",
+		url: null,
+		thumbnailUrl: null,
+		sortOrder: 8,
+		createdAt: new Date("2024-08-14T00:00:00.000Z"),
+	},
+	{
+		id: "fallback-sun",
+		title: "一起等日落",
+		description: "光落下来的时候，我们没有急着走。",
+		location: "山顶",
+		takenAt: new Date("2024-10-02T00:00:00.000Z"),
+		visibility: "public",
+		url: null,
+		thumbnailUrl: null,
+		sortOrder: 6,
+		createdAt: new Date("2024-10-02T00:00:00.000Z"),
+	},
+];
+
+const fallbackLetters: MemoryLetter[] = [
+	{
+		id: "fallback-letter",
+		title: "给未来的我们",
+		content:
+			"愿我们以后翻到这里时，还会记得最开始那种小心翼翼又很笃定的喜欢。",
+		author: "我们",
+		visibility: "public",
+		writtenAt: new Date("2024-05-20T00:00:00.000Z"),
+		createdAt: new Date("2024-05-20T00:00:00.000Z"),
+	},
+];
+
+const fallbackTimeline: MemoryTimelineEvent[] = [
+	{
+		id: "fallback-meet",
+		title: "故事开始",
+		description: "从一句普通的问候开始，后来每一天都有了新的重量。",
+		eventDate: new Date("2024-05-20T00:00:00.000Z"),
+		location: "春天",
+		visibility: "public",
+		photoId: null,
+		createdAt: new Date("2024-05-20T00:00:00.000Z"),
+	},
+	{
+		id: "fallback-trip",
+		title: "第一次一起旅行",
+		description: "路线绕了一点，但我们都觉得刚刚好。",
+		eventDate: new Date("2024-10-02T00:00:00.000Z"),
+		location: "远方",
+		visibility: "public",
+		photoId: null,
+		createdAt: new Date("2024-10-02T00:00:00.000Z"),
+	},
+];
+
+const fallbackAnniversaries: MemoryAnniversary[] = [
+	{
+		id: "fallback-start",
+		title: "在一起纪念日",
+		date: "2024-05-20",
+		type: "annual",
+		description: "每一年都要认真庆祝的日子。",
+		isPrimary: true,
+		createdAt: new Date("2024-05-20T00:00:00.000Z"),
+	},
+];
+
+const fallbackSettings: SiteSettings = {
+	siteTitle: "我们的小宇宙",
+	coupleNames: "你和我",
+	heroTitle: "我们的小宇宙",
+	heroSubtitle: "把相爱这件小事，认真收藏成一个会发光的地方。",
+	loveStartDate: "2024-05-20",
+	heroImageUrl: null,
+};
+
+function toPhoto(row: typeof photos.$inferSelect): MemoryPhoto {
+	return {
+		id: row.id,
+		title: row.title,
+		description: row.description,
+		location: row.location,
+		takenAt: row.takenAt,
+		visibility: row.visibility,
+		url: storageKeyToMediaUrl(row.storageKey),
+		thumbnailUrl: row.thumbnailKey ? storageKeyToMediaUrl(row.thumbnailKey) : null,
+		sortOrder: row.sortOrder,
+		createdAt: row.createdAt,
+	};
+}
+
+function toLetter(row: typeof letters.$inferSelect): MemoryLetter {
+	return {
+		id: row.id,
+		title: row.title,
+		content: row.content,
+		author: row.author,
+		visibility: row.visibility,
+		writtenAt: row.writtenAt,
+		createdAt: row.createdAt,
+	};
+}
+
+function toTimelineEvent(
+	row: typeof timelineEvents.$inferSelect
+): MemoryTimelineEvent {
+	return {
+		id: row.id,
+		title: row.title,
+		description: row.description,
+		eventDate: row.eventDate,
+		location: row.location,
+		visibility: row.visibility,
+		photoId: row.photoId,
+		createdAt: row.createdAt,
+	};
+}
+
+function toAnniversary(row: typeof anniversaries.$inferSelect): MemoryAnniversary {
+	return {
+		id: row.id,
+		title: row.title,
+		date: row.date,
+		type: row.type,
+		description: row.description,
+		isPrimary: row.isPrimary,
+		createdAt: row.createdAt,
+	};
+}
+
+async function readOrFallback<T>({
+	fallback,
+	query,
+	useFallbackWhenEmpty = true,
+}: {
+	fallback: T[];
+	query: () => Promise<T[]>;
+	useFallbackWhenEmpty?: boolean;
+}) {
+	try {
+		const rows = await query();
+		return rows.length === 0 && useFallbackWhenEmpty ? fallback : rows;
+	} catch {
+		return fallback;
+	}
+}
+
+export async function getSiteSettings(): Promise<SiteSettings> {
+	try {
+		const db = getDb();
+		const rows = await db.select().from(settings);
+		const values = new Map(rows.map((row) => [row.key, row.value]));
+
+		return {
+			siteTitle: values.get("siteTitle") || fallbackSettings.siteTitle,
+			coupleNames: values.get("coupleNames") || fallbackSettings.coupleNames,
+			heroTitle: values.get("heroTitle") || fallbackSettings.heroTitle,
+			heroSubtitle: values.get("heroSubtitle") || fallbackSettings.heroSubtitle,
+			loveStartDate:
+				values.get("loveStartDate") || fallbackSettings.loveStartDate,
+			heroImageUrl: values.get("heroImageUrl") || fallbackSettings.heroImageUrl,
+		};
+	} catch {
+		return fallbackSettings;
+	}
+}
+
+export async function getPublicPhotos(limit?: number) {
+	return readOrFallback({
+		fallback: limit ? fallbackPhotos.slice(0, limit) : fallbackPhotos,
+		query: async () => {
+			const query = getDb()
+				.select()
+				.from(photos)
+				.where(eq(photos.visibility, "public"))
+				.orderBy(desc(photos.sortOrder), desc(photos.takenAt), desc(photos.createdAt));
+			const rows = limit ? await query.limit(limit) : await query;
+			return rows.map(toPhoto);
+		},
+	});
+}
+
+export async function getAllPhotos() {
+	return readOrFallback({
+		fallback: [],
+		query: async () => {
+			const rows = await getDb()
+				.select()
+				.from(photos)
+				.orderBy(desc(photos.sortOrder), desc(photos.createdAt));
+			return rows.map(toPhoto);
+		},
+		useFallbackWhenEmpty: false,
+	});
+}
+
+export async function getPublicLetters(limit?: number) {
+	return readOrFallback({
+		fallback: limit ? fallbackLetters.slice(0, limit) : fallbackLetters,
+		query: async () => {
+			const query = getDb()
+				.select()
+				.from(letters)
+				.where(eq(letters.visibility, "public"))
+				.orderBy(desc(letters.writtenAt), desc(letters.createdAt));
+			const rows = limit ? await query.limit(limit) : await query;
+			return rows.map(toLetter);
+		},
+	});
+}
+
+export async function getAllLetters() {
+	return readOrFallback({
+		fallback: [],
+		query: async () => {
+			const rows = await getDb()
+				.select()
+				.from(letters)
+				.orderBy(desc(letters.writtenAt), desc(letters.createdAt));
+			return rows.map(toLetter);
+		},
+		useFallbackWhenEmpty: false,
+	});
+}
+
+export async function getPublicTimelineEvents(limit?: number) {
+	return readOrFallback({
+		fallback: limit ? fallbackTimeline.slice(0, limit) : fallbackTimeline,
+		query: async () => {
+			const query = getDb()
+				.select()
+				.from(timelineEvents)
+				.where(eq(timelineEvents.visibility, "public"))
+				.orderBy(desc(timelineEvents.eventDate));
+			const rows = limit ? await query.limit(limit) : await query;
+			return rows.map(toTimelineEvent);
+		},
+	});
+}
+
+export async function getAllTimelineEvents() {
+	return readOrFallback({
+		fallback: [],
+		query: async () => {
+			const rows = await getDb()
+				.select()
+				.from(timelineEvents)
+				.orderBy(desc(timelineEvents.eventDate));
+			return rows.map(toTimelineEvent);
+		},
+		useFallbackWhenEmpty: false,
+	});
+}
+
+export async function getAnniversaries() {
+	return readOrFallback({
+		fallback: fallbackAnniversaries,
+		query: async () => {
+			const rows = await getDb()
+				.select()
+				.from(anniversaries)
+				.orderBy(desc(anniversaries.isPrimary), desc(anniversaries.date));
+			return rows.map(toAnniversary);
+		},
+	});
+}
+
+export async function getAdminAnniversaries() {
+	return readOrFallback({
+		fallback: [],
+		query: async () => {
+			const rows = await getDb()
+				.select()
+				.from(anniversaries)
+				.orderBy(desc(anniversaries.isPrimary), desc(anniversaries.date));
+			return rows.map(toAnniversary);
+		},
+		useFallbackWhenEmpty: false,
+	});
+}
+
+export function getLoveDays(startDate: string, now = new Date()) {
+	const start = new Date(`${startDate}T00:00:00`);
+	const startMs = start.getTime();
+
+	if (Number.isNaN(startMs)) {
+		return 0;
+	}
+
+	return Math.max(
+		1,
+		Math.floor((now.getTime() - startMs) / (24 * 60 * 60 * 1000)) + 1
+	);
+}
+
+export function getNextAnniversary(
+	items: MemoryAnniversary[],
+	now = new Date()
+) {
+	const candidates = items
+		.map((item) => {
+			const [month, day] = item.date.split("-").slice(1);
+			const year = now.getFullYear();
+			let nextDate = new Date(`${year}-${month}-${day}T00:00:00`);
+
+			if (item.type !== "annual") {
+				nextDate = new Date(`${item.date}T00:00:00`);
+			}
+
+			if (nextDate.getTime() < now.getTime()) {
+				nextDate = new Date(`${year + 1}-${month}-${day}T00:00:00`);
+			}
+
+			return { item, nextDate };
+		})
+		.filter(({ nextDate }) => !Number.isNaN(nextDate.getTime()))
+		.sort((left, right) => left.nextDate.getTime() - right.nextDate.getTime());
+
+	return candidates[0] ?? null;
+}
