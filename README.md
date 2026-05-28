@@ -26,9 +26,9 @@
 
 Wrangler 使用统一资源名：
 
-- Worker: `our-love-site`
-- D1: `our-love-site`
-- R2: `our-love-site`
+- Worker: `ourdays`
+- D1: `ourdays`
+- R2: `ourdays`
 
 生产环境建议在 Cloudflare 中配置：
 

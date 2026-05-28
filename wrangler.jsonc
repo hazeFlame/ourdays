@@ -27,13 +27,13 @@
 	"r2_buckets": [
 		{
 			"binding": "R2",
-			"bucket_name": "our-love-site"
+			"bucket_name": "ourdays"
 		}
 	],
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "our-love-site",
+			"database_name": "ourdays",
 			"database_id": "4cf139d4-b925-430b-90e8-65d0a72711f3",
 			"migrations_dir": "drizzle"
 		}
