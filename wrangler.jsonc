@@ -34,7 +34,7 @@
 		{
 			"binding": "DB",
 			"database_name": "ourdays",
-			"database_id": "4cf139d4-b925-430b-90e8-65d0a72711f3",
+			"database_id": "11d96db7-2c3c-466e-815d-7b829feb37cf",
 			"migrations_dir": "drizzle"
 		}
 	],
