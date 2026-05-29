@@ -13,7 +13,14 @@ export function createDb(database: D1Database): Database {
 	return drizzle(database, { schema });
 }
 
+let cachedDb: Database | null = null;
+
 export function getDb(): Database {
+	if (cachedDb) {
+		return cachedDb;
+	}
+
 	const { env } = getCloudflareContext();
-	return createDb((env as AppBindings).DB);
+	cachedDb = createDb((env as AppBindings).DB);
+	return cachedDb;
 }

@@ -2,7 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
-import { createDb } from "@/db/client";
+import { getDb } from "@/db/client";
 import * as schema from "@/db/schema";
 
 type AuthBindings = CloudflareEnv & {
@@ -21,15 +21,14 @@ function requireBinding(env: AuthBindings, name: keyof AuthBindings): string {
 	return value;
 }
 
-export function getAuth() {
+function initAuth() {
 	const { env } = getCloudflareContext();
 	const bindings = env as AuthBindings;
-	const db = createDb(bindings.DB);
 
 	return betterAuth({
 		baseURL: requireBinding(bindings, "BETTER_AUTH_URL"),
 		secret: requireBinding(bindings, "BETTER_AUTH_SECRET"),
-		database: drizzleAdapter(db, {
+		database: drizzleAdapter(getDb(), {
 			provider: "sqlite",
 			schema,
 		}),
@@ -39,4 +38,14 @@ export function getAuth() {
 			minPasswordLength: 8,
 		},
 	});
+}
+
+type AuthInstance = ReturnType<typeof initAuth>;
+let cachedAuth: AuthInstance | null = null;
+
+export function getAuth(): AuthInstance {
+	if (!cachedAuth) {
+		cachedAuth = initAuth();
+	}
+	return cachedAuth;
 }
