@@ -35,7 +35,7 @@ function initAuth() {
 		emailAndPassword: {
 			enabled: true,
 			requireEmailVerification: false,
-			minPasswordLength: 8,
+			minPasswordLength: 4,
 		},
 	});
 }

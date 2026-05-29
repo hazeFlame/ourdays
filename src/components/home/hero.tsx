@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, CalendarHeart, Images, Lock } from "lucide-react";
@@ -16,6 +17,8 @@ export function HomeHero({
 	loveDays: number;
 	settings: SiteSettings;
 }) {
+	const { data: session } = authClient.useSession();
+	const adminHref = session?.user ? "/admin" : "/login?callbackURL=/admin";
 	return (
 		<section className="relative isolate overflow-hidden">
 			<div className="absolute inset-0 -z-10">
@@ -73,8 +76,11 @@ export function HomeHero({
 				>
 					<div className="absolute left-4 top-4 h-64 w-48 rotate-[-7deg] rounded-lg border border-white/70 bg-linear-to-br from-[#D96C82] via-[#E9B0A7] to-[#FFF4DF] p-4 shadow-xl" />
 					<div className="absolute right-2 top-16 h-72 w-52 rotate-[6deg] rounded-lg border border-white/70 bg-linear-to-br from-[#8FAE9B] via-[#D7B377] to-[#FFF9F4] p-4 shadow-xl" />
-					<div className="absolute bottom-2 left-1/2 h-72 w-56 -translate-x-1/2 rounded-lg border border-white/80 bg-card p-5 shadow-2xl">
-						<div className="flex h-full flex-col justify-between rounded-md border border-dashed border-primary/30 bg-background/80 p-5">
+					<Link
+						href={adminHref}
+						className="absolute bottom-2 left-1/2 h-72 w-56 -translate-x-1/2 rounded-lg border border-white/80 bg-card p-5 shadow-2xl transition-all duration-200 hover:shadow-3xl hover:-translate-y-1 hover:border-primary/30 group"
+					>
+						<div className="flex h-full flex-col justify-between rounded-md border border-dashed border-primary/30 bg-background/80 p-5 transition-colors group-hover:border-primary/60">
 							<div>
 								<p className="text-sm text-muted-foreground">我们已经一起走过</p>
 								<p className="mt-3 text-6xl font-semibold tracking-normal text-primary">
@@ -93,7 +99,7 @@ export function HomeHero({
 								</p>
 							</div>
 						</div>
-					</div>
+					</Link>
 				</motion.div>
 			</div>
 		</section>

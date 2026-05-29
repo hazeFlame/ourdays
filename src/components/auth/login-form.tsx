@@ -15,7 +15,7 @@ type LoginFormProps = {
 /** 把用户名转换为虚拟邮箱，避免 better-auth 邮箱格式校验 */
 function toFakeEmail(username: string): string {
 	const clean = username.trim().toLowerCase().replace(/\s+/g, "_");
-	return `${clean}@local`;
+	return `${clean}@local.local`;
 }
 
 export function LoginForm({ callbackURL = "/" }: LoginFormProps) {
@@ -152,9 +152,9 @@ export function LoginForm({ callbackURL = "/" }: LoginFormProps) {
 						autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
 						className={inputClass}
 						id="password"
-						minLength={8}
+						minLength={4}
 						onChange={(e) => setPassword(e.target.value)}
-						placeholder="至少 8 位"
+						placeholder="至少 4 位"
 						required
 						type="password"
 						value={password}
