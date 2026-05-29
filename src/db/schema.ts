@@ -101,6 +101,7 @@ export const photos = sqliteTable(
 		visibility: text("visibility").notNull().default("public"),
 		sortOrder: integer("sort_order").notNull().default(0),
 		createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+		createdByUserId: text("created_by_user_id").references(() => user.id, { onDelete: "set null" }),
 	},
 	(table) => [
 		index("photos_visibility_idx").on(table.visibility),
@@ -119,6 +120,7 @@ export const letters = sqliteTable(
 		visibility: text("visibility").notNull().default("private"),
 		writtenAt: integer("written_at", { mode: "timestamp" }),
 		createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+		createdByUserId: text("created_by_user_id").references(() => user.id, { onDelete: "set null" }),
 	},
 	(table) => [
 		index("letters_visibility_idx").on(table.visibility),
@@ -139,6 +141,7 @@ export const timelineEvents = sqliteTable(
 		location: text("location"),
 		visibility: text("visibility").notNull().default("public"),
 		createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+		createdByUserId: text("created_by_user_id").references(() => user.id, { onDelete: "set null" }),
 	},
 	(table) => [
 		index("timeline_events_visibility_idx").on(table.visibility),
@@ -157,6 +160,7 @@ export const anniversaries = sqliteTable(
 		description: text("description"),
 		isPrimary: integer("is_primary", { mode: "boolean" }).notNull().default(false),
 		createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+		createdByUserId: text("created_by_user_id").references(() => user.id, { onDelete: "set null" }),
 	},
 	(table) => [
 		index("anniversaries_date_idx").on(table.date),

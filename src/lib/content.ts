@@ -6,6 +6,7 @@ import {
 	photos,
 	settings,
 	timelineEvents,
+	user,
 } from "@/db/schema";
 import { getDb } from "@/db/client";
 import { storageKeyToMediaUrl } from "@/lib/r2";
@@ -23,6 +24,7 @@ export type MemoryPhoto = {
 	thumbnailUrl: string | null;
 	sortOrder: number;
 	createdAt: Date;
+	createdBy: string | null;
 };
 
 export type MemoryLetter = {
@@ -33,6 +35,7 @@ export type MemoryLetter = {
 	visibility: string;
 	writtenAt: Date | null;
 	createdAt: Date;
+	createdBy: string | null;
 };
 
 export type MemoryTimelineEvent = {
@@ -44,6 +47,7 @@ export type MemoryTimelineEvent = {
 	visibility: string;
 	photoId: string | null;
 	createdAt: Date;
+	createdBy: string | null;
 };
 
 export type MemoryAnniversary = {
@@ -54,6 +58,7 @@ export type MemoryAnniversary = {
 	description: string | null;
 	isPrimary: boolean;
 	createdAt: Date;
+	createdBy: string | null;
 };
 
 export type SiteSettings = {
@@ -77,6 +82,7 @@ const fallbackPhotos: MemoryPhoto[] = [
 		thumbnailUrl: null,
 		sortOrder: 10,
 		createdAt: new Date("2024-05-20T00:00:00.000Z"),
+		createdBy: null,
 	},
 	{
 		id: "fallback-night",
@@ -89,6 +95,7 @@ const fallbackPhotos: MemoryPhoto[] = [
 		thumbnailUrl: null,
 		sortOrder: 8,
 		createdAt: new Date("2024-08-14T00:00:00.000Z"),
+		createdBy: null,
 	},
 	{
 		id: "fallback-sun",
@@ -101,6 +108,7 @@ const fallbackPhotos: MemoryPhoto[] = [
 		thumbnailUrl: null,
 		sortOrder: 6,
 		createdAt: new Date("2024-10-02T00:00:00.000Z"),
+		createdBy: null,
 	},
 ];
 
@@ -114,6 +122,7 @@ const fallbackLetters: MemoryLetter[] = [
 		visibility: "public",
 		writtenAt: new Date("2024-05-20T00:00:00.000Z"),
 		createdAt: new Date("2024-05-20T00:00:00.000Z"),
+		createdBy: null,
 	},
 ];
 
@@ -127,6 +136,7 @@ const fallbackTimeline: MemoryTimelineEvent[] = [
 		visibility: "public",
 		photoId: null,
 		createdAt: new Date("2024-05-20T00:00:00.000Z"),
+		createdBy: null,
 	},
 	{
 		id: "fallback-trip",
@@ -137,6 +147,7 @@ const fallbackTimeline: MemoryTimelineEvent[] = [
 		visibility: "public",
 		photoId: null,
 		createdAt: new Date("2024-10-02T00:00:00.000Z"),
+		createdBy: null,
 	},
 ];
 
@@ -149,6 +160,7 @@ const fallbackAnniversaries: MemoryAnniversary[] = [
 		description: "每一年都要认真庆祝的日子。",
 		isPrimary: true,
 		createdAt: new Date("2024-05-20T00:00:00.000Z"),
+		createdBy: null,
 	},
 ];
 
@@ -161,7 +173,7 @@ const fallbackSettings: SiteSettings = {
 	heroImageUrl: null,
 };
 
-function toPhoto(row: typeof photos.$inferSelect): MemoryPhoto {
+function toPhoto(row: typeof photos.$inferSelect, createdByName?: string | null): MemoryPhoto {
 	return {
 		id: row.id,
 		title: row.title,
@@ -173,10 +185,11 @@ function toPhoto(row: typeof photos.$inferSelect): MemoryPhoto {
 		thumbnailUrl: row.thumbnailKey ? storageKeyToMediaUrl(row.thumbnailKey) : null,
 		sortOrder: row.sortOrder,
 		createdAt: row.createdAt,
+		createdBy: createdByName ?? null,
 	};
 }
 
-function toLetter(row: typeof letters.$inferSelect): MemoryLetter {
+function toLetter(row: typeof letters.$inferSelect, createdByName?: string | null): MemoryLetter {
 	return {
 		id: row.id,
 		title: row.title,
@@ -185,11 +198,13 @@ function toLetter(row: typeof letters.$inferSelect): MemoryLetter {
 		visibility: row.visibility,
 		writtenAt: row.writtenAt,
 		createdAt: row.createdAt,
+		createdBy: createdByName ?? null,
 	};
 }
 
 function toTimelineEvent(
-	row: typeof timelineEvents.$inferSelect
+	row: typeof timelineEvents.$inferSelect,
+	createdByName?: string | null
 ): MemoryTimelineEvent {
 	return {
 		id: row.id,
@@ -200,10 +215,11 @@ function toTimelineEvent(
 		visibility: row.visibility,
 		photoId: row.photoId,
 		createdAt: row.createdAt,
+		createdBy: createdByName ?? null,
 	};
 }
 
-function toAnniversary(row: typeof anniversaries.$inferSelect): MemoryAnniversary {
+function toAnniversary(row: typeof anniversaries.$inferSelect, createdByName?: string | null): MemoryAnniversary {
 	return {
 		id: row.id,
 		title: row.title,
@@ -212,6 +228,7 @@ function toAnniversary(row: typeof anniversaries.$inferSelect): MemoryAnniversar
 		description: row.description,
 		isPrimary: row.isPrimary,
 		createdAt: row.createdAt,
+		createdBy: createdByName ?? null,
 	};
 }
 
@@ -262,7 +279,7 @@ export async function getPublicPhotos(limit?: number) {
 				.where(eq(photos.visibility, "public"))
 				.orderBy(desc(photos.sortOrder), desc(photos.takenAt), desc(photos.createdAt));
 			const rows = limit ? await query.limit(limit) : await query;
-			return rows.map(toPhoto);
+			return rows.map((row) => toPhoto(row));
 		},
 	});
 }
@@ -272,10 +289,14 @@ export async function getAllPhotos() {
 		fallback: [],
 		query: async () => {
 			const rows = await getDb()
-				.select()
+				.select({
+					photo: photos,
+					createdByName: user.name,
+				})
 				.from(photos)
+				.leftJoin(user, eq(photos.createdByUserId, user.id))
 				.orderBy(desc(photos.sortOrder), desc(photos.createdAt));
-			return rows.map(toPhoto);
+			return rows.map(({ photo, createdByName }) => toPhoto(photo, createdByName));
 		},
 		useFallbackWhenEmpty: false,
 	});
@@ -291,7 +312,7 @@ export async function getPublicLetters(limit?: number) {
 				.where(eq(letters.visibility, "public"))
 				.orderBy(desc(letters.writtenAt), desc(letters.createdAt));
 			const rows = limit ? await query.limit(limit) : await query;
-			return rows.map(toLetter);
+			return rows.map((row) => toLetter(row));
 		},
 	});
 }
@@ -301,10 +322,14 @@ export async function getAllLetters() {
 		fallback: [],
 		query: async () => {
 			const rows = await getDb()
-				.select()
+				.select({
+					letter: letters,
+					createdByName: user.name,
+				})
 				.from(letters)
+				.leftJoin(user, eq(letters.createdByUserId, user.id))
 				.orderBy(desc(letters.writtenAt), desc(letters.createdAt));
-			return rows.map(toLetter);
+			return rows.map(({ letter, createdByName }) => toLetter(letter, createdByName));
 		},
 		useFallbackWhenEmpty: false,
 	});
@@ -320,7 +345,7 @@ export async function getPublicTimelineEvents(limit?: number) {
 				.where(eq(timelineEvents.visibility, "public"))
 				.orderBy(desc(timelineEvents.eventDate));
 			const rows = limit ? await query.limit(limit) : await query;
-			return rows.map(toTimelineEvent);
+			return rows.map((row) => toTimelineEvent(row));
 		},
 	});
 }
@@ -330,10 +355,14 @@ export async function getAllTimelineEvents() {
 		fallback: [],
 		query: async () => {
 			const rows = await getDb()
-				.select()
+				.select({
+					event: timelineEvents,
+					createdByName: user.name,
+				})
 				.from(timelineEvents)
+				.leftJoin(user, eq(timelineEvents.createdByUserId, user.id))
 				.orderBy(desc(timelineEvents.eventDate));
-			return rows.map(toTimelineEvent);
+			return rows.map(({ event, createdByName }) => toTimelineEvent(event, createdByName));
 		},
 		useFallbackWhenEmpty: false,
 	});
@@ -347,7 +376,7 @@ export async function getAnniversaries() {
 				.select()
 				.from(anniversaries)
 				.orderBy(desc(anniversaries.isPrimary), desc(anniversaries.date));
-			return rows.map(toAnniversary);
+			return rows.map((row) => toAnniversary(row));
 		},
 	});
 }
@@ -357,10 +386,14 @@ export async function getAdminAnniversaries() {
 		fallback: [],
 		query: async () => {
 			const rows = await getDb()
-				.select()
+				.select({
+					anniversary: anniversaries,
+					createdByName: user.name,
+				})
 				.from(anniversaries)
+				.leftJoin(user, eq(anniversaries.createdByUserId, user.id))
 				.orderBy(desc(anniversaries.isPrimary), desc(anniversaries.date));
-			return rows.map(toAnniversary);
+			return rows.map(({ anniversary, createdByName }) => toAnniversary(anniversary, createdByName));
 		},
 		useFallbackWhenEmpty: false,
 	});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, type FormEvent } from "react";
+import { useState, useRef, useCallback, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
 	CalendarHeart,
@@ -8,15 +8,18 @@ import {
 	ImagePlus,
 	LayoutDashboard,
 	Loader2,
+	LogOut,
 	PenLine,
 	Plus,
 	Settings,
 	Trash2,
+	User,
 	X,
 	Clock,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
 import {
 	createAnniversary,
 	createLetter,
@@ -48,6 +51,15 @@ type AdminDashboardProps = {
 	photos: MemoryPhoto[];
 	settings: SiteSettings;
 	timeline: MemoryTimelineEvent[];
+};
+
+export type UploadItem = {
+	id: string;
+	preview: string;
+	file: File;
+	compressed: File | null;
+	progress?: number;
+	status?: "waiting" | "compressing" | "uploading" | "success" | "error";
 };
 
 type ActionResult = {
@@ -105,46 +117,187 @@ function ImageUpload({
 	name,
 	label,
 	existingUrl,
+	multiple,
+	files = [],
+	onChange,
 }: {
 	name: string;
 	label: string;
 	existingUrl?: string | null;
+	multiple?: boolean;
+	files?: UploadItem[];
+	onChange?: (files: UploadItem[]) => void;
 }) {
 	const inputRef = useRef<HTMLInputElement>(null);
-	const [preview, setPreview] = useState<string | null>(existingUrl ?? null);
 	const [isCompressing, setIsCompressing] = useState(false);
-	const compressedFileRef = useRef<File | null>(null);
 
-	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (!file) return;
+	const [singlePreview, setSinglePreview] = useState<string | null>(existingUrl ?? null);
+	const singleCompressedRef = useRef<File | null>(null);
 
-		// Show raw preview immediately
-		const objectUrl = URL.createObjectURL(file);
-		setPreview(objectUrl);
-
-		// Compress in background
-		setIsCompressing(true);
+	const updateInputFiles = (filesList: File[]) => {
+		if (!inputRef.current) return;
 		try {
-			const compressed = await compressAndConvertToWebp(file, 0.8, 1200);
-			compressedFileRef.current = compressed;
-		} catch {
-			compressedFileRef.current = file;
-		} finally {
-			setIsCompressing(false);
+			const dataTransfer = new DataTransfer();
+			filesList.forEach((file) => {
+				dataTransfer.items.add(file);
+			});
+			inputRef.current.files = dataTransfer.files;
+		} catch (err) {
+			console.error("Failed to set files via DataTransfer:", err);
 		}
 	};
 
-	const clearPreview = () => {
-		setPreview(null);
-		compressedFileRef.current = null;
+	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const selectedFiles = Array.from(e.target.files || []);
+		if (selectedFiles.length === 0) return;
+
+		if (multiple) {
+			const newItems = selectedFiles.map((file) => ({
+				id: Math.random().toString(36).substring(2, 9),
+				preview: URL.createObjectURL(file),
+				file,
+				compressed: null as File | null,
+				status: "compressing" as const,
+			}));
+
+			const updatedFiles = [...files, ...newItems];
+			onChange?.(updatedFiles);
+			setIsCompressing(true);
+
+			const compressedItems = await Promise.all(
+				newItems.map(async (item) => {
+					try {
+						const compressed = await compressAndConvertToWebp(item.file, 0.8, 1200);
+						return { ...item, compressed, status: "waiting" as const };
+					} catch {
+						return { ...item, status: "waiting" as const };
+					}
+				})
+			);
+
+			const finalFiles = updatedFiles.map((p) => {
+				const match = compressedItems.find((u) => u.id === p.id);
+				return match ? match : p;
+			});
+			onChange?.(finalFiles);
+			updateInputFiles(finalFiles.map((m) => m.compressed || m.file));
+			setIsCompressing(false);
+		} else {
+			const file = selectedFiles[0];
+			const objectUrl = URL.createObjectURL(file);
+			setSinglePreview(objectUrl);
+			setIsCompressing(true);
+			try {
+				const compressed = await compressAndConvertToWebp(file, 0.8, 1200);
+				singleCompressedRef.current = compressed;
+				updateInputFiles([compressed]);
+			} catch {
+				singleCompressedRef.current = file;
+				updateInputFiles([file]);
+			} finally {
+				setIsCompressing(false);
+			}
+		}
+	};
+
+	const removeMultipleItem = (id: string) => {
+		const filtered = files.filter((item) => item.id !== id);
+		onChange?.(filtered);
+		updateInputFiles(filtered.map((m) => m.compressed || m.file));
+	};
+
+	const clearSinglePreview = () => {
+		setSinglePreview(null);
+		singleCompressedRef.current = null;
 		if (inputRef.current) inputRef.current.value = "";
 	};
+
+	if (multiple) {
+		return (
+			<div className="space-y-3">
+				<span className="text-sm font-medium text-foreground">{label}</span>
+				<input
+					ref={inputRef}
+					accept="image/avif,image/gif,image/jpeg,image/png,image/webp"
+					className="hidden"
+					name={name}
+					onChange={handleFileChange}
+					type="file"
+					multiple
+				/>
+
+				{files.length > 0 ? (
+					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+						{files.map((item) => (
+							<div key={item.id} className="relative aspect-square overflow-hidden rounded-xl border bg-muted group">
+								{/* eslint-disable-next-line @next/next/no-img-element */}
+								<img
+									alt="预览"
+									className="h-full w-full object-cover"
+									src={item.preview}
+								/>
+								
+								{item.status === "compressing" && (
+									<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-white text-xs gap-1">
+										<Loader2 className="size-4 animate-spin text-white" />
+										<span>压缩中...</span>
+									</div>
+								)}
+								{item.status === "uploading" && (
+									<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white text-xs gap-1">
+										<Loader2 className="size-4 animate-spin text-primary" />
+										<span className="font-semibold">{item.progress || 0}%</span>
+									</div>
+								)}
+								{item.status === "success" && (
+									<div className="absolute inset-0 flex flex-col items-center justify-center bg-green-500/80 text-white text-xs gap-1">
+										<Check className="size-6" />
+										<span>成功</span>
+									</div>
+								)}
+								{item.status === "error" && (
+									<div className="absolute inset-0 flex flex-col items-center justify-center bg-destructive/80 text-white text-xs gap-1">
+										<X className="size-6" />
+										<span>失败</span>
+									</div>
+								)}
+
+								<button
+									className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+									onClick={() => removeMultipleItem(item.id)}
+									type="button"
+								>
+									<X className="size-3.5" />
+								</button>
+							</div>
+						))}
+						<button
+							className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border bg-muted/10 text-muted-foreground transition hover:border-primary/50 hover:bg-muted/30"
+							onClick={() => inputRef.current?.click()}
+							type="button"
+						>
+							<Plus className="size-6" />
+							<span className="text-xs">添加更多</span>
+						</button>
+					</div>
+				) : (
+					<button
+						className="flex h-36 w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition hover:border-primary/50 hover:bg-muted/60"
+						onClick={() => inputRef.current?.click()}
+						type="button"
+					>
+						<ImagePlus className="size-8" />
+						<span className="text-sm">点击选择多张图片</span>
+						<span className="text-xs">自动压缩为 WebP · 支持批量上传</span>
+					</button>
+				)}
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-2">
 			<span className="text-sm font-medium text-foreground">{label}</span>
-			{/* Hidden actual input that the form reads */}
 			<input
 				ref={inputRef}
 				accept="image/avif,image/gif,image/jpeg,image/png,image/webp"
@@ -153,13 +306,13 @@ function ImageUpload({
 				onChange={handleFileChange}
 				type="file"
 			/>
-			{preview ? (
+			{singlePreview ? (
 				<div className="relative overflow-hidden rounded-xl border bg-muted">
 					{/* eslint-disable-next-line @next/next/no-img-element */}
 					<img
 						alt="预览"
 						className="max-h-56 w-full object-cover"
-						src={preview}
+						src={singlePreview}
 					/>
 					{isCompressing ? (
 						<div className="absolute inset-0 flex items-center justify-center bg-black/40">
@@ -169,7 +322,7 @@ function ImageUpload({
 					) : null}
 					<button
 						className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
-						onClick={clearPreview}
+						onClick={clearSinglePreview}
 						type="button"
 					>
 						<X className="size-4" />
@@ -186,7 +339,7 @@ function ImageUpload({
 					<span className="text-xs">自动压缩为 WebP · 最大边 1200px</span>
 				</button>
 			)}
-			{!preview && (
+			{!singlePreview && (
 				<Button
 					className="w-full"
 					onClick={() => inputRef.current?.click()}
@@ -201,18 +354,38 @@ function ImageUpload({
 	);
 }
 
-// Toast / message banner
-function StatusBanner({ message, isError }: { message: string; isError?: boolean }) {
+// ── Toast system ──────────────────────────────────────
+type ToastItem = { id: number; message: string; isError: boolean };
+
+function ToastContainer({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: (id: number) => void }) {
 	return (
-		<div
-			className={`flex items-center gap-2 rounded-lg px-4 py-3 text-sm ${
-				isError
-					? "bg-destructive/10 text-destructive"
-					: "bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
-			}`}
-		>
-			{isError ? <X className="size-4 shrink-0" /> : <Check className="size-4 shrink-0" />}
-			{message}
+		<div className="fixed right-3 top-16 z-[100] flex flex-col gap-2 w-[calc(100vw-1.5rem)] max-w-sm pointer-events-none sm:right-4 sm:top-20 sm:w-80">
+			{toasts.map((t) => (
+				<div
+					key={t.id}
+					className={`pointer-events-auto flex items-start gap-3 rounded-xl px-4 py-3 text-sm shadow-lg ring-1 animate-in slide-in-from-right-4 fade-in duration-300 ${
+						t.isError
+							? "bg-white ring-destructive/20 text-destructive dark:bg-zinc-900"
+							: "bg-white ring-green-200 text-green-800 dark:bg-zinc-900 dark:ring-green-800 dark:text-green-400"
+					}`}
+				>
+					<span className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full ${
+						t.isError ? "bg-destructive/10" : "bg-green-100 dark:bg-green-900/40"
+					}`}>
+						{t.isError
+							? <X className="size-3" />
+							: <Check className="size-3" />}
+					</span>
+					<span className="flex-1 leading-5">{t.message}</span>
+					<button
+						className="mt-0.5 shrink-0 opacity-50 hover:opacity-100 transition-opacity"
+						onClick={() => onDismiss(t.id)}
+						type="button"
+					>
+						<X className="size-3.5" />
+					</button>
+				</div>
+			))}
 		</div>
 	);
 }
@@ -225,10 +398,29 @@ export function AdminDashboard({
 	timeline,
 }: AdminDashboardProps) {
 	const router = useRouter();
+	const { data: session } = authClient.useSession();
+	const user = session?.user;
+	const displayName = user?.name || user?.email?.split("@")[0] || "用户";
+
+	const signOut = async () => {
+		await authClient.signOut();
+		window.location.href = "/";
+	};
 	const [activeTab, setActiveTab] = useState<Tab>("photos");
-	const [message, setMessage] = useState<string | null>(null);
-	const [isError, setIsError] = useState(false);
+	const [toasts, setToasts] = useState<ToastItem[]>([]);
 	const [isPending, setIsPending] = useState(false);
+	const [uploadFiles, setUploadFiles] = useState<UploadItem[]>([]);
+	const toastIdRef = useRef(0);
+
+	const pushToast = useCallback((message: string, isError: boolean) => {
+		const id = ++toastIdRef.current;
+		setToasts((prev) => [...prev, { id, message, isError }]);
+		setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500);
+	}, []);
+
+	const dismissToast = useCallback((id: number) => {
+		setToasts((prev) => prev.filter((t) => t.id !== id));
+	}, []);
 
 	const runAction = async (
 		action: Promise<ActionResult>,
@@ -236,78 +428,194 @@ export function AdminDashboard({
 		form?: HTMLFormElement
 	) => {
 		setIsPending(true);
-		setMessage(null);
 		const result = await action;
 		setIsPending(false);
 
 		if (result.error) {
-			setIsError(true);
-			setMessage(result.error);
+			pushToast(result.error, true);
 			return;
 		}
 
 		form?.reset();
-		setIsError(false);
-		setMessage(successMessage);
+		pushToast(successMessage, false);
 		router.refresh();
-
-		// Auto-clear after 4s
-		setTimeout(() => setMessage(null), 4000);
 	};
 
-	const uploadFile = async (file: File, kind: "photo" | "private") => {
-		let fileToUpload = file;
-		try {
-			fileToUpload = await compressAndConvertToWebp(file, 0.8, 1200);
-		} catch {
-			// fallback to original
+	const uploadFile = (
+		file: File,
+		kind: string,
+		onProgress?: (percent: number) => void
+	): Promise<string> => {
+		return new Promise((resolve, reject) => {
+			const xhr = new XMLHttpRequest();
+			const body = new FormData();
+			body.set("file", file);
+			body.set("kind", kind);
+
+			xhr.open("POST", "/api/uploads");
+
+			if (xhr.upload && onProgress) {
+				xhr.upload.onprogress = (event) => {
+					if (event.lengthComputable) {
+						const percent = Math.round((event.loaded / event.total) * 100);
+						onProgress(percent);
+					}
+				};
+			}
+
+			xhr.onload = () => {
+				if (xhr.status >= 200 && xhr.status < 300) {
+					try {
+						const payload = JSON.parse(xhr.responseText) as { error?: string; url?: string };
+						if (payload.url) {
+							resolve(payload.url);
+						} else {
+							reject(new Error(payload.error || "上传结果缺少图片地址。"));
+						}
+					} catch {
+						reject(new Error("解析服务器响应失败。"));
+					}
+				} else {
+					try {
+						const payload = JSON.parse(xhr.responseText) as { error?: string };
+						reject(new Error(payload.error || "图片上传失败。"));
+					} catch {
+						reject(new Error(`图片上传失败，状态码: ${xhr.status}`));
+					}
+				}
+			};
+
+			xhr.onerror = () => {
+				reject(new Error("网络连接失败。"));
+			};
+
+			xhr.send(body);
+		});
+	};
+
+	/** 校验必填字段，任意一项为空时推送 toast 并返回 false */
+	const validate = (rules: { value: string; label: string }[]): boolean => {
+		for (const { value, label } of rules) {
+			if (!value.trim()) {
+				pushToast(`「${label}」不能为空`, true);
+				return false;
+			}
 		}
-
-		const body = new FormData();
-		body.set("file", fileToUpload);
-		body.set("kind", kind);
-
-		const response = await fetch("/api/uploads", { body, method: "POST" });
-		const payload = (await response.json()) as { error?: string; url?: string };
-
-		if (!response.ok) throw new Error(payload.error || "图片上传失败。");
-		if (!payload.url) throw new Error("上传结果缺少图片地址。");
-		return payload.url;
+		return true;
 	};
 
 	const submitPhoto = async (event: FormEvent<HTMLFormElement>, id?: string) => {
 		event.preventDefault();
 		const form = event.currentTarget;
 		const formData = new FormData(form);
+		const title = getString(formData, "title");
 		const visibility = getString(formData, "visibility") || "public";
-		const file = getFile(formData, "image");
-		let imageUrl = "";
 
-		try {
-			if (file) {
-				imageUrl = await uploadFile(file, visibility === "private" ? "private" : "photo");
+		if (id) {
+			const file = getFile(formData, "image");
+			let imageUrl = "";
+			try {
+				if (file) {
+					imageUrl = await uploadFile(file, visibility === "private" ? "private" : "photo");
+				}
+			} catch (error) {
+				pushToast(error instanceof Error ? error.message : "图片上传失败。", true);
+				return;
 			}
-		} catch (error) {
-			setIsError(true);
-			setMessage(error instanceof Error ? error.message : "图片上传失败。");
-			return;
+
+			const input = {
+				description: getString(formData, "description"),
+				imageUrl,
+				location: getString(formData, "location"),
+				sortOrder: getString(formData, "sortOrder"),
+				takenAt: getString(formData, "takenAt"),
+				title,
+				visibility,
+			};
+
+			await runAction(
+				updatePhoto(id, input),
+				"照片已更新。"
+			);
+		} else {
+			if (uploadFiles.length === 0) {
+				pushToast("请先选择照片。", true);
+				return;
+			}
+
+			setIsPending(true);
+			let successCount = 0;
+			let failCount = 0;
+
+			for (let i = 0; i < uploadFiles.length; i++) {
+				const item = uploadFiles[i];
+
+				setUploadFiles((prev) =>
+					prev.map((f) => (f.id === item.id ? { ...f, status: "uploading", progress: 0 } : f))
+				);
+
+				const fileToUpload = item.compressed || item.file;
+				try {
+					const imageUrl = await uploadFile(
+						fileToUpload,
+						visibility === "private" ? "private" : "photo",
+						(percent) => {
+							setUploadFiles((prev) =>
+								prev.map((f) => (f.id === item.id ? { ...f, progress: percent } : f))
+							);
+						}
+					);
+
+					const finalTitle = title.trim() || item.file.name.replace(/\.[^/.]+$/, "");
+
+					const input = {
+						description: getString(formData, "description"),
+						imageUrl,
+						location: getString(formData, "location"),
+						sortOrder: getString(formData, "sortOrder"),
+						takenAt: getString(formData, "takenAt"),
+						title: finalTitle,
+						visibility,
+					};
+
+					const res = await createPhoto(input);
+					if (res.ok) {
+						successCount++;
+						setUploadFiles((prev) =>
+							prev.map((f) => (f.id === item.id ? { ...f, status: "success" } : f))
+						);
+					} else {
+						failCount++;
+						setUploadFiles((prev) =>
+							prev.map((f) => (f.id === item.id ? { ...f, status: "error" } : f))
+						);
+					}
+				} catch (error) {
+					console.error("Upload failed for file:", item.file.name, error);
+					failCount++;
+					setUploadFiles((prev) =>
+						prev.map((f) => (f.id === item.id ? { ...f, status: "error" } : f))
+					);
+				}
+			}
+
+			setIsPending(false);
+
+			if (successCount > 0) {
+				pushToast(
+					`照片上传成功！成功上传 ${successCount} 张` +
+					(failCount > 0 ? `，失败 ${failCount} 张` : ""),
+					false
+				);
+				form.reset();
+				setTimeout(() => {
+					setUploadFiles((prev) => prev.filter((f) => f.status !== "success"));
+				}, 1500);
+				router.refresh();
+			} else {
+				pushToast("所有照片上传均失败。", true);
+			}
 		}
-
-		const input = {
-			description: getString(formData, "description"),
-			imageUrl,
-			location: getString(formData, "location"),
-			sortOrder: getString(formData, "sortOrder"),
-			takenAt: getString(formData, "takenAt"),
-			title: getString(formData, "title"),
-			visibility,
-		};
-
-		await runAction(
-			id ? updatePhoto(id, input) : createPhoto(input),
-			id ? "照片已更新。" : "照片已添加。",
-			id ? undefined : form
-		);
 	};
 
 	const submitSettings = async (event: FormEvent<HTMLFormElement>) => {
@@ -330,10 +638,18 @@ export function AdminDashboard({
 		event.preventDefault();
 		const form = event.currentTarget;
 		const formData = new FormData(form);
+		const title = getString(formData, "title");
+		const content = getString(formData, "content");
+
+		if (!validate([
+			{ value: title, label: "标题" },
+			{ value: content, label: "正文" },
+		])) return;
+
 		const input = {
 			author: getString(formData, "author"),
-			content: getString(formData, "content"),
-			title: getString(formData, "title"),
+			content,
+			title,
 			visibility: getString(formData, "visibility"),
 			writtenAt: getString(formData, "writtenAt"),
 		};
@@ -348,12 +664,20 @@ export function AdminDashboard({
 		event.preventDefault();
 		const form = event.currentTarget;
 		const formData = new FormData(form);
+		const title = getString(formData, "title");
+		const eventDate = getString(formData, "eventDate");
+
+		if (!validate([
+			{ value: title, label: "标题" },
+			{ value: eventDate, label: "日期" },
+		])) return;
+
 		const input = {
 			description: getString(formData, "description"),
-			eventDate: getString(formData, "eventDate"),
+			eventDate,
 			location: getString(formData, "location"),
 			photoId: getString(formData, "photoId"),
-			title: getString(formData, "title"),
+			title,
 			visibility: getString(formData, "visibility"),
 		};
 		await runAction(
@@ -367,11 +691,19 @@ export function AdminDashboard({
 		event.preventDefault();
 		const form = event.currentTarget;
 		const formData = new FormData(form);
+		const title = getString(formData, "title");
+		const date = getString(formData, "date");
+
+		if (!validate([
+			{ value: title, label: "标题" },
+			{ value: date, label: "日期" },
+		])) return;
+
 		const input = {
-			date: getString(formData, "date"),
+			date,
 			description: getString(formData, "description"),
 			isPrimary: formData.get("isPrimary") === "on",
-			title: getString(formData, "title"),
+			title,
 			type: getString(formData, "type") || "annual",
 		};
 		await runAction(
@@ -382,10 +714,12 @@ export function AdminDashboard({
 	};
 
 	return (
+		<>
+		<ToastContainer toasts={toasts} onDismiss={dismissToast} />
 		<div className="flex min-h-screen bg-muted/20">
 			{/* Sidebar */}
 			<aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-56 shrink-0 flex-col border-r bg-background lg:flex">
-				<div className="flex flex-col gap-1 p-4">
+				<div className="flex flex-1 flex-col gap-1 p-4">
 					<div className="mb-3 flex items-center gap-2 px-2">
 						<LayoutDashboard className="size-4 text-primary" />
 						<span className="text-sm font-semibold">后台编辑</span>
@@ -406,58 +740,81 @@ export function AdminDashboard({
 						</button>
 					))}
 				</div>
+
+				{/* User info at sidebar bottom */}
+				<div className="mt-auto border-t p-4">
+					<div className="flex items-center gap-3 rounded-lg bg-muted/50 px-3 py-2.5">
+						<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+							<User className="size-4" />
+						</div>
+						<div className="min-w-0 flex-1">
+							<p className="truncate text-sm font-medium">{displayName}</p>
+							<p className="text-xs text-muted-foreground">已登录</p>
+						</div>
+						<button
+							className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+							onClick={signOut}
+							title="退出登录"
+							type="button"
+						>
+							<LogOut className="size-4" />
+						</button>
+					</div>
+				</div>
 			</aside>
 
 			{/* Main content */}
 			<div className="flex-1 min-w-0">
-				{/* Mobile tab bar */}
-				<div className="flex gap-1 overflow-x-auto border-b bg-background px-4 py-2 lg:hidden">
+				{/* Mobile bottom nav bar */}
+				<nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t bg-background/95 backdrop-blur-sm lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
 					{tabs.map((tab) => (
 						<button
-							className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+							className={`flex flex-1 flex-col items-center gap-1 px-1 py-3 text-[10px] font-medium transition-colors ${
 								activeTab === tab.id
-									? "bg-primary/10 text-primary"
-									: "text-foreground/60 hover:bg-muted hover:text-foreground"
+									? "text-primary"
+									: "text-foreground/50 hover:text-foreground"
 							}`}
 							key={tab.id}
 							onClick={() => setActiveTab(tab.id)}
 							type="button"
 						>
-							{tab.icon}
+							<span className={`flex size-6 items-center justify-center rounded-lg transition-colors ${
+								activeTab === tab.id ? "bg-primary/10" : ""
+							}`}>
+								{tab.icon}
+							</span>
 							{tab.label}
 						</button>
 					))}
-				</div>
+				</nav>
 
-				<div className="p-6">
+				<div className="px-2 py-3 pb-28 sm:px-4 lg:p-6 lg:pb-6">
 					{/* Page header */}
-					<div className="mb-6 flex items-center justify-between">
-						<div>
-							<h1 className="text-2xl font-semibold tracking-tight">
-								{tabs.find((t) => t.id === activeTab)?.label}
-							</h1>
-							<p className="mt-1 text-sm text-muted-foreground">
-								{activeTab === "photos" && "上传和管理所有照片"}
-								{activeTab === "letters" && "编写情书和留言"}
-								{activeTab === "timeline" && "记录重要时刻"}
-								{activeTab === "anniversaries" && "维护纪念日列表"}
-								{activeTab === "settings" && "修改站点基本信息"}
-							</p>
-						</div>
-						{isPending && (
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
-								<Loader2 className="size-4 animate-spin" />
-								保存中…
+					<div className="mb-4 flex items-center justify-between lg:mb-6">
+						<h1 className="text-xl font-semibold tracking-tight lg:text-2xl">
+							{tabs.find((t) => t.id === activeTab)?.label}
+						</h1>
+						<div className="flex items-center gap-2">
+							{isPending && (
+								<div className="flex items-center gap-1.5 text-xs text-muted-foreground lg:text-sm">
+									<Loader2 className="size-3.5 animate-spin" />
+									保存中…
+								</div>
+							)}
+							{/* Mobile user + logout */}
+							<div className="flex items-center gap-1.5 lg:hidden">
+								<span className="max-w-[80px] truncate text-xs text-muted-foreground">{displayName}</span>
+								<button
+									className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+									onClick={signOut}
+									title="退出登录"
+									type="button"
+								>
+									<LogOut className="size-3.5" />
+								</button>
 							</div>
-						)}
-					</div>
-
-					{/* Status message */}
-					{message ? (
-						<div className="mb-6">
-							<StatusBanner isError={isError} message={message} />
 						</div>
-					) : null}
+					</div>
 
 					{/* Tab panels */}
 					{activeTab === "photos" && (
@@ -466,6 +823,8 @@ export function AdminDashboard({
 							onDelete={runAction}
 							onSubmit={submitPhoto}
 							photos={photos}
+							files={uploadFiles}
+							onFilesChange={setUploadFiles}
 						/>
 					)}
 					{activeTab === "letters" && (
@@ -501,8 +860,9 @@ export function AdminDashboard({
 						/>
 					)}
 				</div>
-			</div>
 		</div>
+		</div>
+		</>
 	);
 }
 
@@ -515,20 +875,24 @@ function PhotosTab({
 	onDelete,
 	onSubmit,
 	photos,
+	files,
+	onFilesChange,
 }: {
 	isPending: boolean;
 	onDelete: (action: Promise<ActionResult>, message: string) => Promise<void>;
 	onSubmit: (event: FormEvent<HTMLFormElement>, id?: string) => Promise<void>;
 	photos: MemoryPhoto[];
+	files: UploadItem[];
+	onFilesChange: (files: UploadItem[]) => void;
 }) {
 	return (
 		<div className="space-y-8">
 			{/* Add photo */}
-			<div className="rounded-xl border bg-card p-6 shadow-sm">
-				<h2 className="mb-5 text-base font-semibold">添加新照片</h2>
-				<form className="grid gap-5 md:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
+			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">添加新照片</h2>
+				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
 					<Field label="标题">
-						<input className={inputClass} name="title" placeholder="给这张照片起个名字" required />
+						<input className={inputClass} name="title" placeholder="照片名字（选填，不填默认使用文件名）" />
 					</Field>
 					<Field label="可见性">
 						<select className={selectClass} name="visibility">
@@ -548,7 +912,7 @@ function PhotosTab({
 						</Field>
 					</div>
 					<div className="md:col-span-2">
-						<ImageUpload label="选择照片" name="image" />
+						<ImageUpload label="选择照片" name="image" multiple files={files} onChange={onFilesChange} />
 					</div>
 					<div className="md:col-span-2">
 						<Button disabled={isPending} type="submit">
@@ -561,8 +925,8 @@ function PhotosTab({
 
 			{/* Existing photos */}
 			{photos.length > 0 && (
-				<div className="rounded-xl border bg-card p-6 shadow-sm">
-					<h2 className="mb-5 text-base font-semibold">已有照片 ({photos.length})</h2>
+				<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+					<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">已有照片 ({photos.length})</h2>
 					<div className="space-y-3">
 						{photos.map((photo) => (
 							<PhotoItem
@@ -617,6 +981,7 @@ function PhotoItem({
 					<p className="text-xs text-muted-foreground">
 						{photo.visibility === "public" ? "公开" : "私密"}
 						{photo.location ? ` · ${photo.location}` : ""}
+						{photo.createdBy ? ` · ${photo.createdBy} 创建` : ""}
 					</p>
 				</div>
 				<span className="text-xs text-muted-foreground">{open ? "收起" : "展开"}</span>
@@ -624,12 +989,12 @@ function PhotoItem({
 
 			{open && (
 				<form
-					className="border-t p-4"
+					className="border-t p-2 sm:p-4"
 					onSubmit={(e) => onSubmit(e, photo.id)}
 				>
-					<div className="grid gap-4 md:grid-cols-2">
+					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
 						<Field label="标题">
-							<input className={inputClass} defaultValue={photo.title} name="title" required />
+							<input className={inputClass} defaultValue={photo.title} name="title" />
 						</Field>
 						<Field label="可见性">
 							<select className={selectClass} defaultValue={photo.visibility} name="visibility">
@@ -702,11 +1067,11 @@ function LettersTab({
 }) {
 	return (
 		<div className="space-y-8">
-			<div className="rounded-xl border bg-card p-6 shadow-sm">
-				<h2 className="mb-5 text-base font-semibold">写一封新情书</h2>
-				<form className="grid gap-5 md:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
+			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">写一封新情书</h2>
+				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
 					<Field label="标题">
-						<input className={inputClass} name="title" placeholder="信的题目" required />
+						<input className={inputClass} name="title" placeholder="信的题目" />
 					</Field>
 					<Field label="作者">
 						<input className={inputClass} name="author" placeholder="写信的人" />
@@ -722,7 +1087,7 @@ function LettersTab({
 					</Field>
 					<div className="md:col-span-2">
 						<Field label="正文">
-							<textarea className={textareaClass} name="content" placeholder="把想说的话写在这里…" required style={{ minHeight: 200 }} />
+							<textarea className={textareaClass} name="content" placeholder="把想说的话写在这里…" style={{ minHeight: 200 }} />
 						</Field>
 					</div>
 					<div className="md:col-span-2">
@@ -735,8 +1100,8 @@ function LettersTab({
 			</div>
 
 			{letters.length > 0 && (
-				<div className="rounded-xl border bg-card p-6 shadow-sm">
-					<h2 className="mb-5 text-base font-semibold">已有情书 ({letters.length})</h2>
+				<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+					<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">已有情书 ({letters.length})</h2>
 					<div className="space-y-3">
 						{letters.map((letter) => (
 							<LetterItem
@@ -781,15 +1146,16 @@ function LetterItem({
 					<p className="text-xs text-muted-foreground">
 						{letter.author ? `${letter.author} · ` : ""}
 						{letter.visibility === "public" ? "公开" : "私密"}
+						{letter.createdBy ? ` · ${letter.createdBy} 创建` : ""}
 					</p>
 				</div>
 				<span className="text-xs text-muted-foreground">{open ? "收起" : "展开"}</span>
 			</button>
 			{open && (
-				<form className="border-t p-4" onSubmit={(e) => onSubmit(e, letter.id)}>
-					<div className="grid gap-4 md:grid-cols-2">
+				<form className="border-t p-2 sm:p-4" onSubmit={(e) => onSubmit(e, letter.id)}>
+					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
 						<Field label="标题">
-							<input className={inputClass} defaultValue={letter.title} name="title" required />
+							<input className={inputClass} defaultValue={letter.title} name="title" />
 						</Field>
 						<Field label="作者">
 							<input className={inputClass} defaultValue={letter.author ?? ""} name="author" />
@@ -814,7 +1180,6 @@ function LetterItem({
 									className={textareaClass}
 									defaultValue={letter.content}
 									name="content"
-									required
 									style={{ minHeight: 200 }}
 								/>
 							</Field>
@@ -863,14 +1228,14 @@ function TimelineTab({
 
 	return (
 		<div className="space-y-8">
-			<div className="rounded-xl border bg-card p-6 shadow-sm">
-				<h2 className="mb-5 text-base font-semibold">添加新事件</h2>
-				<form className="grid gap-5 md:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
+			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">添加新事件</h2>
+				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
 					<Field label="标题">
-						<input className={inputClass} name="title" placeholder="发生了什么？" required />
+						<input className={inputClass} name="title" placeholder="发生了什么？" />
 					</Field>
 					<Field label="日期">
-						<input className={inputClass} name="eventDate" required type="date" />
+						<input className={inputClass} name="eventDate" type="date" />
 					</Field>
 					<Field label="地点">
 						<input className={inputClass} name="location" placeholder="在哪里？" />
@@ -900,8 +1265,8 @@ function TimelineTab({
 			</div>
 
 			{timeline.length > 0 && (
-				<div className="rounded-xl border bg-card p-6 shadow-sm">
-					<h2 className="mb-5 text-base font-semibold">已有事件 ({timeline.length})</h2>
+				<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+					<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">已有事件 ({timeline.length})</h2>
 					<div className="space-y-3">
 						{timeline.map((event) => (
 							<TimelineItem
@@ -949,22 +1314,22 @@ function TimelineItem({
 					<p className="text-xs text-muted-foreground">
 						{toDateInputValue(event.eventDate)}
 						{event.location ? ` · ${event.location}` : ""}
+						{event.createdBy ? ` · ${event.createdBy} 创建` : ""}
 					</p>
 				</div>
 				<span className="text-xs text-muted-foreground">{open ? "收起" : "展开"}</span>
 			</button>
 			{open && (
-				<form className="border-t p-4" onSubmit={(e) => onSubmit(e, event.id)}>
-					<div className="grid gap-4 md:grid-cols-2">
+				<form className="border-t p-2 sm:p-4" onSubmit={(e) => onSubmit(e, event.id)}>
+					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
 						<Field label="标题">
-							<input className={inputClass} defaultValue={event.title} name="title" required />
+							<input className={inputClass} defaultValue={event.title} name="title" />
 						</Field>
 						<Field label="日期">
 							<input
 								className={inputClass}
 								defaultValue={toDateInputValue(event.eventDate)}
 								name="eventDate"
-								required
 								type="date"
 							/>
 						</Field>
@@ -1026,14 +1391,14 @@ function AnniversariesTab({
 }) {
 	return (
 		<div className="space-y-8">
-			<div className="rounded-xl border bg-card p-6 shadow-sm">
-				<h2 className="mb-5 text-base font-semibold">添加纪念日</h2>
-				<form className="grid gap-5 md:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
+			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">添加纪念日</h2>
+				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
 					<Field label="标题">
-						<input className={inputClass} name="title" placeholder="叫什么名字？" required />
+						<input className={inputClass} name="title" placeholder="叫什么名字？" />
 					</Field>
 					<Field label="日期">
-						<input className={inputClass} name="date" required type="date" />
+						<input className={inputClass} name="date" type="date" />
 					</Field>
 					<Field label="类型">
 						<select className={selectClass} name="type">
@@ -1060,8 +1425,8 @@ function AnniversariesTab({
 			</div>
 
 			{anniversaries.length > 0 && (
-				<div className="rounded-xl border bg-card p-6 shadow-sm">
-					<h2 className="mb-5 text-base font-semibold">已有纪念日 ({anniversaries.length})</h2>
+				<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+					<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">已有纪念日 ({anniversaries.length})</h2>
 					<div className="space-y-3">
 						{anniversaries.map((item) => (
 							<AnniversaryItem
@@ -1108,18 +1473,21 @@ function AnniversaryItem({
 							<span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">主要</span>
 						)}
 					</p>
-					<p className="text-xs text-muted-foreground">{item.date}</p>
+					<p className="text-xs text-muted-foreground">
+						{item.date}
+						{item.createdBy ? ` · ${item.createdBy} 创建` : ""}
+					</p>
 				</div>
 				<span className="text-xs text-muted-foreground">{open ? "收起" : "展开"}</span>
 			</button>
 			{open && (
-				<form className="border-t p-4" onSubmit={(e) => onSubmit(e, item.id)}>
-					<div className="grid gap-4 md:grid-cols-2">
+				<form className="border-t p-2 sm:p-4" onSubmit={(e) => onSubmit(e, item.id)}>
+					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
 						<Field label="标题">
-							<input className={inputClass} defaultValue={item.title} name="title" required />
+							<input className={inputClass} defaultValue={item.title} name="title" />
 						</Field>
 						<Field label="日期">
-							<input className={inputClass} defaultValue={item.date} name="date" required type="date" />
+							<input className={inputClass} defaultValue={item.date} name="date" type="date" />
 						</Field>
 						<Field label="类型">
 							<select className={selectClass} defaultValue={item.type} name="type">
@@ -1178,9 +1546,9 @@ function SettingsTab({
 	settings: SiteSettings;
 }) {
 	return (
-		<div className="rounded-xl border bg-card p-6 shadow-sm">
-			<h2 className="mb-5 text-base font-semibold">站点基本信息</h2>
-			<form className="grid gap-5 md:grid-cols-2" onSubmit={onSubmit}>
+		<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+			<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">站点基本信息</h2>
+			<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={onSubmit}>
 				<Field label="站点标题">
 					<input className={inputClass} defaultValue={settings.siteTitle} name="siteTitle" />
 				</Field>

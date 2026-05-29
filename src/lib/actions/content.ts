@@ -144,14 +144,11 @@ async function archiveImage({
 }
 
 export async function createPhoto(input: PhotoInput): Promise<ActionResult> {
-	await requireUser();
+	const user = await requireUser();
+	const createdBy = user.id;
 
 	const title = cleanText(input.title);
 	const imageUrl = cleanText(input.imageUrl);
-
-	if (!title) {
-		return { error: "请填写照片标题。" };
-	}
 
 	if (!imageUrl) {
 		return { error: "请先上传一张照片。" };
@@ -177,6 +174,7 @@ export async function createPhoto(input: PhotoInput): Promise<ActionResult> {
 			visibility,
 			sortOrder: parseSortOrder(input.sortOrder),
 			createdAt: new Date(),
+			createdByUserId: createdBy,
 		});
 
 		revalidateMemoryPaths();
@@ -195,10 +193,6 @@ export async function updatePhoto(
 	await requireUser();
 
 	const title = cleanText(input.title);
-
-	if (!title) {
-		return { error: "请填写照片标题。" };
-	}
 
 	try {
 		const visibility = parseVisibility(input.visibility);
@@ -244,7 +238,8 @@ export async function deletePhoto(id: string): Promise<ActionResult> {
 }
 
 export async function createLetter(input: LetterInput): Promise<ActionResult> {
-	await requireUser();
+	const user = await requireUser();
+	const createdBy = user.id;
 
 	const title = cleanText(input.title);
 	const content = cleanText(input.content);
@@ -262,6 +257,7 @@ export async function createLetter(input: LetterInput): Promise<ActionResult> {
 			visibility: parseVisibility(input.visibility ?? "private"),
 			writtenAt: parseDate(input.writtenAt),
 			createdAt: new Date(),
+			createdByUserId: createdBy,
 		});
 
 		revalidateMemoryPaths();
@@ -318,7 +314,8 @@ export async function deleteLetter(id: string): Promise<ActionResult> {
 export async function createTimelineEvent(
 	input: TimelineInput
 ): Promise<ActionResult> {
-	await requireUser();
+	const user = await requireUser();
+	const createdBy = user.id;
 
 	const title = cleanText(input.title);
 
@@ -336,6 +333,7 @@ export async function createTimelineEvent(
 			location: optionalText(input.location),
 			visibility: parseVisibility(input.visibility),
 			createdAt: new Date(),
+			createdByUserId: createdBy,
 		});
 
 		revalidateMemoryPaths();
@@ -392,7 +390,8 @@ export async function deleteTimelineEvent(id: string): Promise<ActionResult> {
 export async function createAnniversary(
 	input: AnniversaryInput
 ): Promise<ActionResult> {
-	await requireUser();
+	const user = await requireUser();
+	const createdBy = user.id;
 
 	const title = cleanText(input.title);
 	const date = cleanText(input.date);
@@ -410,6 +409,7 @@ export async function createAnniversary(
 			description: optionalText(input.description),
 			isPrimary: Boolean(input.isPrimary),
 			createdAt: new Date(),
+			createdByUserId: createdBy,
 		});
 
 		revalidateMemoryPaths();

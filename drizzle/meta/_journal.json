@@ -15,6 +15,13 @@
       "when": 1779950780283,
       "tag": "0001_polite_mindworm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1780049651082,
+      "tag": "0002_easy_micromax",
+      "breakpoints": true
     }
   ]
 }
