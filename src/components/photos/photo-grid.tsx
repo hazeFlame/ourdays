@@ -9,10 +9,10 @@ import { formatDisplayDate, formatDisplayDateTime } from "@/lib/date";
 import { Button } from "@/components/ui/button";
 
 const fallbackGradients = [
-	"from-[#D96C82] via-[#E8B5A8] to-[#FFF0D8]",
-	"from-[#8FAE9B] via-[#D8C79A] to-[#FFF9F4]",
-	"from-[#D7B377] via-[#F1D4C3] to-[#D96C82]",
-	"from-[#B98B82] via-[#8FAE9B] to-[#F7EEE8]",
+	"from-[#EFECE6] to-[#D9D4C7]",
+	"from-[#EAE6DF] via-[#DFDCD5] to-[#C8C2B7]",
+	"from-[#F2EDE4] to-[#E3D9C8]",
+	"from-[#EAEAEA] to-[#CCCCCC]",
 ];
 
 type PhotoGroup = {
@@ -42,7 +42,7 @@ function PhotoTile({
 		return (
 			<Image
 				alt={photo.title}
-				className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+				className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
 				fill
 				sizes="(min-width: 1024px) 20vw, (min-width: 640px) 25vw, 50vw"
 				src={url}
@@ -77,7 +77,7 @@ function AlbumCover({
 
 	if (count === 2) {
 		return (
-			<div className="relative aspect-[4/5] grid grid-cols-2 gap-0.5 overflow-hidden bg-border">
+			<div className="relative aspect-[4/5] grid grid-cols-2 gap-0.5 overflow-hidden bg-border/40">
 				{photos.slice(0, 2).map((p, i) => (
 					<div className="relative overflow-hidden bg-secondary" key={p.id}>
 						<PhotoTile fallbackIndex={fallbackIndex + i} photo={p} />
@@ -89,7 +89,7 @@ function AlbumCover({
 
 	if (count === 3) {
 		return (
-			<div className="relative aspect-[4/5] grid grid-cols-2 gap-0.5 overflow-hidden bg-border">
+			<div className="relative aspect-[4/5] grid grid-cols-2 gap-0.5 overflow-hidden bg-border/40">
 				<div className="relative row-span-2 overflow-hidden bg-secondary">
 					<PhotoTile fallbackIndex={fallbackIndex} photo={photos[0]} />
 				</div>
@@ -107,12 +107,12 @@ function AlbumCover({
 	const tiles = photos.slice(0, 4);
 	const extra = count - 4;
 	return (
-		<div className="relative aspect-[4/5] grid grid-cols-2 grid-rows-2 gap-0.5 overflow-hidden bg-border">
+		<div className="relative aspect-[4/5] grid grid-cols-2 grid-rows-2 gap-0.5 overflow-hidden bg-border/40">
 			{tiles.map((p, i) => (
 				<div className="relative overflow-hidden bg-secondary" key={p.id}>
 					<PhotoTile fallbackIndex={fallbackIndex + i} photo={p} />
 					{i === 3 && extra > 0 && (
-						<div className="absolute inset-0 flex items-center justify-center bg-black/50 text-lg font-semibold text-white">
+						<div className="absolute inset-0 flex items-center justify-center bg-black/60 text-base font-semibold text-white">
 							+{extra}
 						</div>
 					)}
@@ -152,35 +152,35 @@ export function PhotoGrid({
 
 	return (
 		<>
-			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 				{visibleGroups.map((group, index) => {
 					const cover = group.photos[0];
 					return (
 						<button
-							className="group overflow-hidden rounded-lg border border-border bg-card text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+							className="group overflow-hidden rounded-md border border-border/60 bg-card text-left transition duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-[0_15px_30px_-15px_rgba(0,0,0,0.08)]"
 							key={group.title}
 							onClick={() => openGroup(group)}
 							type="button"
 						>
 							<AlbumCover fallbackIndex={index} group={group} />
-							<div className="space-y-2 p-4">
-								<div className="flex items-start justify-between gap-3">
-									<h3 className="font-semibold">{group.title}</h3>
-									<span className="shrink-0 rounded-full bg-secondary px-2 py-1 text-xs text-muted-foreground">
+							<div className="space-y-2.5 p-5">
+								<div className="flex items-center justify-between gap-3">
+									<h3 className="font-semibold text-sm tracking-tight text-foreground">{group.title}</h3>
+									<span className="shrink-0 rounded-sm bg-secondary px-1.5 py-0.5 text-[10px] tracking-wider font-semibold text-muted-foreground uppercase">
 										{cover.visibility === "private" ? "私密" : "公开"}
 									</span>
 								</div>
-								<p className="line-clamp-2 text-sm text-muted-foreground">
+								<p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground/80">
 									{cover.description || "这个相册还在等一句说明。"}
 								</p>
-								<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+								<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] tracking-wide text-muted-foreground/60 border-t border-border/30 pt-3">
 									{cover.location ? (
 										<span className="inline-flex items-center gap-1">
-											<MapPin className="size-3" />
+											<MapPin className="size-3 text-primary/80" />
 											{cover.location}
 										</span>
 									) : null}
-									<span className="text-muted-foreground/60">记录于 {formatDisplayDateTime(cover.createdAt)}</span>
+									<span>{formatDisplayDate(cover.createdAt)}</span>
 								</div>
 							</div>
 						</button>
@@ -190,19 +190,19 @@ export function PhotoGrid({
 
 			{selectedGroup ? (
 				<div
-					className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+					className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs animate-in fade-in duration-200"
 					onClick={(e) => { if (e.target === e.currentTarget) closeGroup(); }}
 				>
-					<div className="flex h-full max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-background shadow-2xl">
+					<div className="flex h-full max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-md bg-background shadow-2xl border border-border/40">
 						{/* Header */}
-						<div className="flex shrink-0 items-center justify-between border-b px-4 py-3">
-							<div>
-								<h2 className="font-semibold">{selectedGroup.title}</h2>
-								<p className="text-xs text-muted-foreground">
-									{photoIndex + 1} / {selectedGroup.photos.length}
+						<div className="flex shrink-0 items-center justify-between border-b border-border/40 px-5 py-4">
+							<div className="space-y-0.5">
+								<h2 className="font-semibold tracking-tight text-foreground text-sm">{selectedGroup.title}</h2>
+								<p className="text-[10px] tracking-widest text-muted-foreground font-medium uppercase">
+									{photoIndex + 1} / {selectedGroup.photos.length} PHOTOS
 								</p>
 							</div>
-							<Button onClick={closeGroup} size="icon" type="button" variant="ghost">
+							<Button onClick={closeGroup} size="icon" type="button" variant="ghost" className="rounded-md size-7">
 								<X className="size-4" />
 								<span className="sr-only">关闭</span>
 							</Button>

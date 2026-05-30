@@ -90,11 +90,11 @@ function getFile(formData: FormData, key: string) {
 }
 
 const inputClass =
-	"h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring/40";
+	"h-9 w-full rounded-md border border-border/70 bg-background px-3 text-xs outline-none transition focus-visible:ring-1 focus-visible:ring-ring/40";
 const textareaClass =
-	"min-h-[120px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition resize-none focus-visible:ring-2 focus-visible:ring-ring/40";
+	"min-h-[120px] w-full rounded-md border border-border/70 bg-background px-3 py-2 text-xs outline-none transition resize-none focus-visible:ring-1 focus-visible:ring-ring/40";
 const selectClass =
-	"h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring/40";
+	"h-9 w-full rounded-md border border-border/70 bg-background px-3 text-xs outline-none transition focus-visible:ring-1 focus-visible:ring-ring/40";
 
 function Field({
 	children,
@@ -231,7 +231,7 @@ function ImageUpload({
 				{files.length > 0 ? (
 					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
 						{files.map((item) => (
-							<div key={item.id} className="relative aspect-square overflow-hidden rounded-xl border bg-muted group">
+							<div key={item.id} className="relative aspect-square overflow-hidden rounded-md border border-border/60 bg-muted group">
 								{/* eslint-disable-next-line @next/next/no-img-element */}
 								<img
 									alt="预览"
@@ -240,57 +240,57 @@ function ImageUpload({
 								/>
 								
 								{item.status === "compressing" && (
-									<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-white text-xs gap-1">
-										<Loader2 className="size-4 animate-spin text-white" />
+									<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 text-white text-[10px] gap-1">
+										<Loader2 className="size-3.5 animate-spin text-white" />
 										<span>压缩中...</span>
 									</div>
 								)}
 								{item.status === "uploading" && (
-									<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white text-xs gap-1">
-										<Loader2 className="size-4 animate-spin text-primary" />
+									<div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white text-[10px] gap-1">
+										<Loader2 className="size-3.5 animate-spin text-primary" />
 										<span className="font-semibold">{item.progress || 0}%</span>
 									</div>
 								)}
 								{item.status === "success" && (
-									<div className="absolute inset-0 flex flex-col items-center justify-center bg-green-500/80 text-white text-xs gap-1">
-										<Check className="size-6" />
+									<div className="absolute inset-0 flex flex-col items-center justify-center bg-green-600/80 text-white text-[10px] gap-1">
+										<Check className="size-5" />
 										<span>成功</span>
 									</div>
 								)}
 								{item.status === "error" && (
-									<div className="absolute inset-0 flex flex-col items-center justify-center bg-destructive/80 text-white text-xs gap-1">
-										<X className="size-6" />
+									<div className="absolute inset-0 flex flex-col items-center justify-center bg-destructive/80 text-white text-[10px] gap-1">
+										<X className="size-5" />
 										<span>失败</span>
 									</div>
 								)}
 
 								<button
-									className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+									className="absolute right-1.5 top-1.5 flex size-5.5 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
 									onClick={() => removeMultipleItem(item.id)}
 									type="button"
 								>
-									<X className="size-3.5" />
+									<X className="size-3" />
 								</button>
 							</div>
 						))}
 						<button
-							className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border bg-muted/10 text-muted-foreground transition hover:border-primary/50 hover:bg-muted/30"
+							className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-md border-2 border-dashed border-border bg-muted/10 text-muted-foreground transition hover:border-primary/50 hover:bg-muted/30"
 							onClick={() => inputRef.current?.click()}
 							type="button"
 						>
-							<Plus className="size-6" />
-							<span className="text-xs">添加更多</span>
+							<Plus className="size-5" />
+							<span className="text-[10px] tracking-wider uppercase font-semibold">添加更多</span>
 						</button>
 					</div>
 				) : (
 					<button
-						className="flex h-36 w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition hover:border-primary/50 hover:bg-muted/60"
+						className="flex h-36 w-full flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition hover:border-primary/50 hover:bg-muted/60"
 						onClick={() => inputRef.current?.click()}
 						type="button"
 					>
-						<ImagePlus className="size-8" />
-						<span className="text-sm">点击选择多张图片</span>
-						<span className="text-xs">自动压缩为 WebP · 支持批量上传</span>
+						<ImagePlus className="size-6 text-muted-foreground/80" />
+						<span className="text-xs font-semibold tracking-wide text-foreground/80">点击选择多张图片</span>
+						<span className="text-[10px] text-muted-foreground">自动压缩为 WebP · 支持批量上传</span>
 					</button>
 				)}
 			</div>
@@ -309,7 +309,7 @@ function ImageUpload({
 				type="file"
 			/>
 			{singlePreview ? (
-				<div className="relative overflow-hidden rounded-xl border bg-muted">
+				<div className="relative overflow-hidden rounded-md border border-border/60 bg-muted">
 					{/* eslint-disable-next-line @next/next/no-img-element */}
 					<img
 						alt="预览"
@@ -317,28 +317,28 @@ function ImageUpload({
 						src={singlePreview}
 					/>
 					{isCompressing ? (
-						<div className="absolute inset-0 flex items-center justify-center bg-black/40">
-							<Loader2 className="size-6 animate-spin text-white" />
-							<span className="ml-2 text-sm text-white">压缩中...</span>
+						<div className="absolute inset-0 flex items-center justify-center bg-black/45">
+							<Loader2 className="size-5 animate-spin text-white" />
+							<span className="ml-2 text-xs text-white">压缩中...</span>
 						</div>
 					) : null}
 					<button
-						className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+						className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
 						onClick={clearSinglePreview}
 						type="button"
 					>
-						<X className="size-4" />
+						<X className="size-3.5" />
 					</button>
 				</div>
 			) : (
 				<button
-					className="flex h-36 w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition hover:border-primary/50 hover:bg-muted/60"
+					className="flex h-36 w-full flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-border bg-muted/30 text-muted-foreground transition hover:border-primary/50 hover:bg-muted/60"
 					onClick={() => inputRef.current?.click()}
 					type="button"
 				>
-					<ImagePlus className="size-8" />
-					<span className="text-sm">点击选择图片</span>
-					<span className="text-xs">自动压缩为 WebP · 最大边 1200px</span>
+					<ImagePlus className="size-6 text-muted-foreground/80" />
+					<span className="text-xs font-semibold tracking-wide text-foreground/80">点击选择图片</span>
+					<span className="text-[10px] text-muted-foreground">自动压缩为 WebP · 最大边 1200px</span>
 				</button>
 			)}
 			{!singlePreview && (
@@ -365,26 +365,26 @@ function ToastContainer({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss:
 			{toasts.map((t) => (
 				<div
 					key={t.id}
-					className={`pointer-events-auto flex items-start gap-3 rounded-xl px-4 py-3 text-sm shadow-lg ring-1 animate-in slide-in-from-right-4 fade-in duration-300 ${
+					className={`pointer-events-auto flex items-start gap-3 rounded-md border px-4 py-3 text-xs tracking-wide shadow-md animate-in slide-in-from-right-4 fade-in duration-300 ${
 						t.isError
-							? "bg-white ring-destructive/20 text-destructive dark:bg-zinc-900"
-							: "bg-white ring-green-200 text-green-800 dark:bg-zinc-900 dark:ring-green-800 dark:text-green-400"
+							? "bg-background border-destructive/30 text-destructive"
+							: "bg-background border-green-200 text-green-800 dark:border-green-800/40 dark:text-green-400"
 					}`}
 				>
-					<span className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full ${
-						t.isError ? "bg-destructive/10" : "bg-green-100 dark:bg-green-900/40"
+					<span className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-sm ${
+						t.isError ? "bg-destructive/10 text-destructive" : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400"
 					}`}>
 						{t.isError
-							? <X className="size-3" />
-							: <Check className="size-3" />}
+							? <X className="size-2.5" />
+							: <Check className="size-2.5" />}
 					</span>
-					<span className="flex-1 leading-5">{t.message}</span>
+					<span className="flex-1 leading-relaxed font-semibold">{t.message}</span>
 					<button
 						className="mt-0.5 shrink-0 opacity-50 hover:opacity-100 transition-opacity"
 						onClick={() => onDismiss(t.id)}
 						type="button"
 					>
-						<X className="size-3.5" />
+						<X className="size-3" />
 					</button>
 				</div>
 			))}
@@ -731,38 +731,38 @@ export function AdminDashboard({
 		<ToastContainer toasts={toasts} onDismiss={dismissToast} />
 		<div className="flex min-h-screen bg-muted/20">
 			{/* Sidebar */}
-			<aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-56 shrink-0 flex-col border-r bg-background lg:flex">
-				<div className="flex flex-1 flex-col gap-1 p-4">
-					<div className="mb-3 flex items-center gap-2 px-2">
-						<LayoutDashboard className="size-4 text-primary" />
-						<span className="text-sm font-semibold">后台编辑</span>
+			<aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-56 shrink-0 flex-col border-r border-border/30 bg-background lg:flex">
+				<div className="flex flex-1 flex-col gap-1.5 p-5">
+					<div className="mb-4 flex items-center gap-2 px-2.5">
+						<LayoutDashboard className="size-3.5 text-primary" />
+						<span className="text-[10px] tracking-[0.25em] font-semibold text-foreground/80 uppercase">后台编辑</span>
 					</div>
 					{tabs.map((tab) => (
 						<button
-							className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+							className={`flex items-center gap-3 rounded-md px-3.5 py-2.5 text-xs font-semibold tracking-wider transition-colors uppercase ${
 								activeTab === tab.id
-									? "bg-primary/10 text-primary"
-									: "text-foreground/60 hover:bg-muted hover:text-foreground"
+									? "bg-secondary text-primary"
+									: "text-foreground/60 hover:bg-muted/50 hover:text-foreground"
 							}`}
 							key={tab.id}
 							onClick={() => setActiveTab(tab.id)}
 							type="button"
 						>
-							{tab.icon}
+							<span className="size-4 flex items-center justify-center">{tab.icon}</span>
 							{tab.label}
 						</button>
 					))}
 				</div>
 
 				{/* User info at sidebar bottom */}
-				<div className="mt-auto border-t p-4">
-					<div className="flex items-center gap-3 rounded-lg bg-muted/50 px-3 py-2.5">
-						<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-							<User className="size-4" />
+				<div className="mt-auto border-t border-border/30 p-5">
+					<div className="flex items-center gap-3 rounded-md bg-secondary/60 px-3 py-2">
+						<div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+							<User className="size-3.5" />
 						</div>
 						<div className="min-w-0 flex-1">
-							<p className="truncate text-sm font-medium">{displayName}</p>
-							<p className="text-xs text-muted-foreground">已登录</p>
+							<p className="truncate text-xs font-semibold tracking-wide text-foreground">{displayName}</p>
+							<p className="text-[9px] tracking-wider text-muted-foreground/85 uppercase">ONLINE</p>
 						</div>
 						<button
 							className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -770,7 +770,7 @@ export function AdminDashboard({
 							title="退出登录"
 							type="button"
 						>
-							<LogOut className="size-4" />
+							<LogOut className="size-3.5" />
 						</button>
 					</div>
 				</div>
@@ -904,7 +904,7 @@ function PhotosTab({
 	return (
 		<div className="space-y-8">
 			{/* Create Album */}
-			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+			<div className="rounded-md border border-border/60 bg-card p-4 sm:p-6 shadow-none">
 				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">新建相册</h2>
 				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
 					<input type="hidden" name="visibility" value="public" />
@@ -940,7 +940,7 @@ function PhotosTab({
 				}
 				const groups = Array.from(groupMap.entries());
 				return (
-					<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+					<div className="rounded-md border border-border/60 bg-card p-4 sm:p-6 shadow-none">
 						<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">
 							已有相册 ({groups.length})
 						</h2>
@@ -1184,7 +1184,7 @@ function LettersTab({
 }) {
 	return (
 		<div className="space-y-8">
-			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+			<div className="rounded-md border border-border/60 bg-card p-4 sm:p-6 shadow-none">
 				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">写一封新情书</h2>
 				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
 					<input type="hidden" name="visibility" value="public" />
@@ -1209,7 +1209,7 @@ function LettersTab({
 			</div>
 
 			{letters.length > 0 && (
-				<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+				<div className="rounded-md border border-border/60 bg-card p-4 sm:p-6 shadow-none">
 					<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">已有情书 ({letters.length})</h2>
 					<div className="space-y-3">
 						{letters.map((letter) => (
@@ -1332,7 +1332,7 @@ function TimelineTab({
 
 	return (
 		<div className="space-y-8">
-			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+			<div className="rounded-md border border-border/60 bg-card p-4 sm:p-6 shadow-none">
 				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">添加新事件</h2>
 				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
 					<input type="hidden" name="visibility" value="public" />
@@ -1361,7 +1361,7 @@ function TimelineTab({
 			</div>
 
 			{timeline.length > 0 && (
-				<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+				<div className="rounded-md border border-border/60 bg-card p-4 sm:p-6 shadow-none">
 					<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">已有事件 ({timeline.length})</h2>
 					<div className="space-y-3">
 						{timeline.map((event) => (
@@ -1475,7 +1475,7 @@ function AnniversariesTab({
 }) {
 	return (
 		<div className="space-y-8">
-			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+			<div className="rounded-md border border-border/60 bg-card p-4 sm:p-6 shadow-none">
 				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">添加纪念日</h2>
 				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
 					<input type="hidden" name="type" value="annual" />
@@ -1501,7 +1501,7 @@ function AnniversariesTab({
 			</div>
 
 			{anniversaries.length > 0 && (
-				<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+				<div className="rounded-md border border-border/60 bg-card p-4 sm:p-6 shadow-none">
 					<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">已有纪念日 ({anniversaries.length})</h2>
 					<div className="space-y-3">
 						{anniversaries.map((item) => (
@@ -1609,7 +1609,7 @@ function SettingsTab({
 	settings: SiteSettings;
 }) {
 	return (
-		<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+		<div className="rounded-md border border-border/60 bg-card p-4 sm:p-6 shadow-none">
 			<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">站点基本信息</h2>
 			<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={onSubmit}>
 				<Field label="站点标题">

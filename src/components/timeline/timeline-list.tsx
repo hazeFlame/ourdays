@@ -55,34 +55,34 @@ export function TimelineList({
 						</div>
 
 						{/* 桌面端直立时间轴圆点：仅在桌端显示 */}
-						<div className="absolute left-0 top-1 hidden size-8 place-items-center rounded-full border bg-background sm:grid">
-							<div className="size-2 rounded-full bg-primary" />
+						<div className="absolute left-0 top-1.5 hidden size-8 place-items-center rounded-full border border-border bg-background sm:grid">
+							<div className="size-2 rounded-full bg-primary/80" />
 						</div>
 
-						<div className="rounded-lg border bg-card p-5 shadow-sm">
+						<div className="rounded-md border border-border/60 bg-card p-6">
 							{/* 桌面端卡片内部的 地点和时间 展示栏：仅在桌端显示 */}
-							<div className="hidden sm:flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-3">
+							<div className="hidden sm:flex flex-wrap items-center gap-2.5 text-[10px] tracking-wider font-semibold text-muted-foreground uppercase mb-3">
 								{event.location ? (
 									<span className="inline-flex items-center gap-1">
-										<MapPin className="size-3" />
+										<MapPin className="size-3 text-primary/80" />
 										{event.location}
 									</span>
 								) : null}
-								<span className="rounded-full bg-secondary px-2 py-0.5">
+								<span className="rounded-sm bg-secondary px-1.5 py-0.5">
 									{event.visibility === "private" ? "私密" : "公开"}
 								</span>
-								<span className="text-muted-foreground/60">记录于 {formatDisplayDateTime(event.createdAt)}</span>
+								<span className="text-muted-foreground/60 font-medium lowercase">记录于 {formatDisplayDateTime(event.createdAt)}</span>
 							</div>
 
 							<div className="flex items-start justify-between gap-2">
-								<h3 className="text-lg font-semibold text-foreground leading-snug">{event.title}</h3>
-								<span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground shrink-0 sm:hidden">
+								<h3 className="text-base font-semibold tracking-tight text-foreground leading-snug">{event.title}</h3>
+								<span className="rounded-sm bg-secondary px-1.5 py-0.5 text-[9px] font-semibold tracking-wider text-muted-foreground uppercase shrink-0 sm:hidden">
 									{event.visibility === "private" ? "私密" : "公开"}
 								</span>
 							</div>
 
 							{event.description ? (
-								<p className="mt-2 text-sm leading-6 text-muted-foreground whitespace-pre-line">
+								<p className="mt-3 text-xs leading-relaxed text-muted-foreground/90 whitespace-pre-line">
 									{event.description}
 								</p>
 							) : null}
@@ -95,10 +95,10 @@ export function TimelineList({
 								const albumPhotos = photos.filter((p) => p.title === albumTitle);
 								if (albumPhotos.length === 0) return null;
 								return (
-									<div className="mt-4 space-y-2 border-t pt-3">
-										<p className="text-xs font-semibold text-primary flex items-center gap-1.5">
+									<div className="mt-4 space-y-2 border-t border-border/30 pt-3">
+										<p className="text-[10px] font-semibold text-primary/90 flex items-center gap-1.5 tracking-wider uppercase">
 											<span>关联相册：{albumTitle}</span>
-											<span className="rounded-full bg-primary/10 px-1.5 py-0.5 font-normal text-[10px]">
+											<span className="rounded-sm bg-secondary px-1.5 py-0.5 font-semibold text-[9px] text-muted-foreground">
 												{albumPhotos.length} 张照片
 											</span>
 										</p>
@@ -106,7 +106,7 @@ export function TimelineList({
 											{albumPhotos.map((photo, pIdx) => (
 												<button
 													key={photo.id}
-													className="relative size-16 shrink-0 overflow-hidden rounded-lg border bg-muted transition hover:opacity-90 active:scale-[0.96]"
+													className="relative size-16 shrink-0 overflow-hidden rounded-md border border-border bg-muted transition hover:opacity-90 active:scale-[0.96]"
 													onClick={() => setPreviewState({ photos: albumPhotos, index: pIdx })}
 													type="button"
 												>
@@ -124,8 +124,8 @@ export function TimelineList({
 							})()}
 
 							{event.createdBy ? (
-								<p className="hidden sm:flex mt-3 items-center gap-1.5 text-xs text-muted-foreground border-t pt-2">
-									<UserCircle2 className="size-3" />
+								<p className="hidden sm:flex mt-4 items-center gap-1.5 text-[10px] tracking-wider text-muted-foreground/80 font-medium border-t border-border/30 pt-3">
+									<UserCircle2 className="size-3 text-muted-foreground/60" />
 									由 {event.createdBy} 记录
 								</p>
 							) : null}

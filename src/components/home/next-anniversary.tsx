@@ -16,8 +16,8 @@ export function NextAnniversary({
 
 	if (!next) {
 		return (
-			<div className="rounded-lg border bg-card p-5">
-				<p className="text-sm text-muted-foreground">还没有设置纪念日。</p>
+			<div className="rounded-md border border-border/60 bg-card p-6">
+				<p className="text-xs tracking-wider text-muted-foreground">还没有设置纪念日。</p>
 			</div>
 		);
 	}
@@ -30,19 +30,19 @@ export function NextAnniversary({
 	);
 
 	return (
-		<div className="rounded-lg border bg-card p-5 shadow-sm">
-			<div className="flex items-start gap-3">
-				<div className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+		<div className="rounded-md border border-border/60 bg-card p-6">
+			<div className="flex items-start gap-4">
+				<div className="grid size-10 shrink-0 place-items-center rounded-md bg-secondary text-primary">
 					<CalendarHeart className="size-5" />
 				</div>
 				<div className="min-w-0 space-y-2">
-					<p className="text-sm text-muted-foreground">下一个纪念日</p>
-					<h3 className="text-xl font-semibold">{next.item.title}</h3>
-					<p className="text-sm text-muted-foreground">
-						{formatDisplayDate(next.nextDate)}，还有 {daysLeft} 天
+					<p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground/80">下一个纪念日</p>
+					<h3 className="text-lg font-semibold tracking-tight text-foreground">{next.item.title}</h3>
+					<p className="text-xs text-muted-foreground font-medium">
+						{formatDisplayDate(next.nextDate)}，还有 <span className="text-primary font-bold text-sm">{daysLeft}</span> 天
 					</p>
 					{next.item.description ? (
-						<p className="text-sm leading-6 text-muted-foreground">
+						<p className="text-xs leading-relaxed text-muted-foreground/95 pt-1">
 							{next.item.description}
 						</p>
 					) : null}

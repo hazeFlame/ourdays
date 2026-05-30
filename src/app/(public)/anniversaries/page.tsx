@@ -15,10 +15,10 @@ export default async function AnniversariesPage() {
 				<div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
 					<div className="space-y-4">
 						<p className="memory-kicker">Anniversaries</p>
-						<h1 className="text-4xl font-semibold tracking-normal sm:text-5xl">
+						<h1 className="text-3xl font-light tracking-tight text-foreground sm:text-4xl">
 							纪念日
 						</h1>
-						<p className="text-lg leading-8 text-muted-foreground">
+						<p className="text-sm leading-relaxed text-muted-foreground/90 max-w-sm">
 							不怕忘记，也不随便对待。重要的日子会在这里等着我们一起靠近。
 						</p>
 					</div>
@@ -27,29 +27,29 @@ export default async function AnniversariesPage() {
 
 				<div className="grid gap-4 md:grid-cols-2">
 					{anniversaries.map((item) => (
-						<article className="rounded-lg border bg-card p-6 shadow-sm" key={item.id}>
-							<div className="flex items-start gap-3">
-								<div className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+						<article className="rounded-md border border-border/60 bg-card p-6" key={item.id}>
+							<div className="flex items-start gap-4">
+								<div className="grid size-10 shrink-0 place-items-center rounded-md bg-secondary text-primary">
 									<CalendarHeart className="size-5" />
 								</div>
-								<div className="min-w-0">
+								<div className="min-w-0 space-y-2">
 									<div className="flex flex-wrap items-center gap-2">
-										<h2 className="text-xl font-semibold">{item.title}</h2>
+										<h2 className="text-base font-semibold tracking-tight text-foreground">{item.title}</h2>
 										{item.isPrimary ? (
-											<span className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary">
+											<span className="rounded-sm bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold text-primary uppercase">
 												主要
 											</span>
 										) : null}
 									</div>
-									<p className="mt-2 text-sm text-muted-foreground">
+									<p className="text-xs text-muted-foreground/80">
 										{formatDisplayDate(item.date)}
 									</p>
 									{item.description ? (
-										<p className="mt-4 leading-7 text-muted-foreground">
+										<p className="text-xs leading-relaxed text-muted-foreground/90 pt-1">
 											{item.description}
 										</p>
 									) : null}
-									<p className="mt-3 text-xs text-muted-foreground/60">
+									<p className="text-[10px] text-muted-foreground/50 pt-2 border-t border-border/30">
 										记录于 {formatDisplayDateTime(item.createdAt)}
 									</p>
 								</div>

@@ -44,7 +44,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 		<>
 			{navItems.map(([label, href]) => (
 				<Link
-					className="rounded-lg px-3 py-2 text-sm font-medium text-foreground/75 transition-colors hover:bg-secondary hover:text-foreground"
+					className="px-4 py-2 text-xs font-medium tracking-widest text-foreground/60 transition-colors hover:text-primary"
 					href={href}
 					key={href}
 					onClick={onNavigate}
@@ -61,19 +61,19 @@ function MobileNavLinks({ onNavigate }: { onNavigate?: () => void }) {
 		<div className="grid gap-3">
 			{mobileNavItems.map(({ label, href, icon, desc }) => (
 				<Link
-					className="flex items-center gap-4 rounded-xl border border-border/40 bg-card p-4 transition-all duration-200 active:scale-[0.98] hover:bg-accent/40"
+					className="flex items-center gap-4 rounded-lg border border-border/30 bg-card p-4 transition-all duration-200 active:scale-[0.98] hover:bg-muted/30"
 					href={href}
 					key={href}
 					onClick={onNavigate}
 				>
-					<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+					<div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-secondary text-primary">
 						{icon}
 					</div>
 					<div className="min-w-0 flex-1 space-y-0.5">
-						<p className="text-sm font-semibold text-foreground">{label}</p>
-						<p className="text-xs text-muted-foreground">{desc}</p>
+						<p className="text-xs font-semibold tracking-wider text-foreground">{label}</p>
+						<p className="text-[11px] text-muted-foreground">{desc}</p>
 					</div>
-					<ChevronRight className="size-4 shrink-0 text-muted-foreground/45" />
+					<ChevronRight className="size-4 shrink-0 text-muted-foreground/30" />
 				</Link>
 			))}
 		</div>
@@ -84,14 +84,14 @@ export function SiteHeader() {
 	const [open, setOpen] = React.useState(false);
 
 	return (
-		<header className="sticky top-0 z-50 border-b border-border/80 bg-background/88 backdrop-blur-xl">
+		<header className="sticky top-0 z-50 border-b border-border/30 bg-background/70 backdrop-blur-md">
 			<div className="memory-shell flex h-16 items-center justify-between gap-4">
 				{/* Logo + 我们 入口 */}
-				<Link className="flex items-center gap-2 font-semibold tracking-tight" href="/">
-						<span className="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-							<Heart className="size-4 fill-current" />
-						</span>
-						<span>我们的小宇宙</span>
+				<Link className="flex items-center gap-2.5 font-semibold tracking-tight" href="/">
+					<div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+						<Heart className="size-4 fill-primary/10 stroke-[1.5]" />
+					</div>
+					<span className="text-xs font-semibold tracking-[0.2em] uppercase text-foreground/90">我们的小宇宙</span>
 				</Link>
 
 				<nav className="hidden items-center gap-1 md:flex">
@@ -110,23 +110,23 @@ export function SiteHeader() {
 							<span className="sr-only">打开菜单</span>
 						</SheetTrigger>
 						<SheetContent className="flex h-full w-72 flex-col bg-background p-0" side="right">
-							<SheetHeader className="border-b p-5 text-left">
+							<SheetHeader className="border-b border-border/30 p-5 text-left">
 								<SheetTitle>
 									<Link
-										className="flex items-center gap-2"
+										className="flex items-center gap-2.5"
 										href="/"
 										onClick={() => setOpen(false)}
 									>
-										<Heart className="size-4 fill-primary text-primary" />
-										<span className="font-semibold tracking-tight">我们的小宇宙</span>
+										<Heart className="size-4 fill-primary/10 text-primary stroke-[1.5]" />
+										<span className="text-xs font-semibold tracking-[0.2em] uppercase text-foreground/90">我们的小宇宙</span>
 									</Link>
 								</SheetTitle>
 							</SheetHeader>
 							<nav className="flex-1 p-5 overflow-y-auto">
 								<MobileNavLinks onNavigate={() => setOpen(false)} />
 							</nav>
-							<div className="mt-auto border-t p-6 text-center space-y-2 bg-gradient-to-b from-transparent to-primary/5">
-								<p className="text-xs tracking-widest text-primary font-semibold uppercase">Our Little Universe</p>
+							<div className="mt-auto border-t border-border/30 p-6 text-center space-y-2 bg-linear-to-b from-transparent to-primary/5">
+								<p className="text-[10px] tracking-[0.3em] text-primary/80 font-semibold uppercase">Our Little Universe</p>
 								<p className="text-xs text-muted-foreground italic">“ 遇见你，是所有美好的开始 ”</p>
 							</div>
 						</SheetContent>

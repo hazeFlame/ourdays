@@ -32,34 +32,34 @@ export function HomeHero({
 						unoptimized
 					/>
 				) : (
-					<div className="h-full w-full bg-[radial-gradient(circle_at_20%_20%,#FFE0D4_0,#FFF9F4_28%,transparent_46%),linear-gradient(135deg,#FFF9F4_0%,#F7EEE8_42%,#E5EFE8_100%)]" />
+					<div className="h-full w-full bg-[radial-gradient(circle_at_20%_20%,rgba(197,168,128,0.12)_0,transparent_45%),linear-gradient(135deg,var(--background)_0%,#FAF9F6_40%,#F5F5F3_100%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(214,195,169,0.08)_0,transparent_40%),linear-gradient(135deg,#0C0A09_0%,#151311_100%)]" />
 				)}
-				<div className="absolute inset-0 bg-background/62" />
+				<div className="absolute inset-0 bg-background/50 backdrop-blur-[1px]" />
 			</div>
 
-			<div className="memory-shell grid min-h-[calc(100vh-4rem)] items-center gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr]">
+			<div className="memory-shell grid min-h-[calc(100vh-4rem)] items-center gap-12 py-16 lg:grid-cols-[1.1fr_0.9fr]">
 				<motion.div
 					animate={{ opacity: 1, y: 0 }}
-					className="max-w-2xl space-y-7"
-					initial={{ opacity: 0, y: 18 }}
-					transition={{ duration: 0.7, ease: "easeOut" }}
+					className="max-w-2xl space-y-8"
+					initial={{ opacity: 0, y: 15 }}
+					transition={{ duration: 0.8, ease: "easeOut" }}
 				>
-					<p className="memory-kicker">{settings.coupleNames}</p>
-					<div className="space-y-5">
-						<h1 className="text-5xl font-semibold leading-[1.05] tracking-normal text-foreground sm:text-6xl lg:text-7xl">
+					<p className="memory-kicker tracking-[0.3em] text-primary/80 font-medium text-xs uppercase">{settings.coupleNames}</p>
+					<div className="space-y-4">
+						<h1 className="text-4xl font-light leading-[1.12] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
 							{settings.heroTitle}
 						</h1>
-						<p className="max-w-xl text-lg leading-8 text-muted-foreground">
+						<p className="max-w-lg text-sm leading-relaxed text-muted-foreground">
 							{settings.heroSubtitle}
 						</p>
 					</div>
-					<div className="flex flex-wrap gap-3">
-						<Link className={cn(buttonVariants({ size: "lg" }), "h-11 px-4")} href="/photos">
+					<div className="flex flex-wrap gap-4 pt-2">
+						<Link className={cn(buttonVariants({ size: "lg" }), "h-10 px-5 rounded-md text-xs tracking-widest uppercase font-semibold")} href="/photos">
 							<Images className="size-4" />
 							看相册
 						</Link>
 						<Link
-							className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-11 px-4")}
+							className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-10 px-5 rounded-md text-xs tracking-widest uppercase font-semibold border-border/70 hover:bg-muted/40")}
 							href="/letters"
 						>
 							打开情书
@@ -70,23 +70,33 @@ export function HomeHero({
 
 				<motion.div
 					animate={{ opacity: 1, scale: 1 }}
-					className="relative min-h-96"
-					initial={{ opacity: 0, scale: 0.96 }}
-					transition={{ delay: 0.1, duration: 0.7, ease: "easeOut" }}
+					className="relative min-h-[420px] flex items-center justify-center"
+					initial={{ opacity: 0, scale: 0.98 }}
+					transition={{ delay: 0.1, duration: 0.8, ease: "easeOut" }}
 				>
-					<div className="absolute left-4 top-4 h-64 w-48 rotate-[-7deg] rounded-lg border border-white/70 bg-linear-to-br from-[#D96C82] via-[#E9B0A7] to-[#FFF4DF] p-4 shadow-xl" />
-					<div className="absolute right-2 top-16 h-72 w-52 rotate-[6deg] rounded-lg border border-white/70 bg-linear-to-br from-[#8FAE9B] via-[#D7B377] to-[#FFF9F4] p-4 shadow-xl" />
+					{/* Decorative minimal card 1 */}
+					<div className="absolute left-6 top-8 h-64 w-48 rotate-[-6deg] rounded-md border border-border/30 bg-gradient-to-br from-[#EFECE6] to-[#D9D4C7] dark:from-[#292524] dark:to-[#1C1917] p-4 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] dark:shadow-none" />
+					{/* Decorative minimal card 2 */}
+					<div className="absolute right-4 top-16 h-72 w-52 rotate-[5deg] rounded-md border border-border/30 bg-gradient-to-br from-[#EAE6DF] via-[#DFDCD5] to-[#C8C2B7] dark:from-[#292524] dark:via-[#221F1D] dark:to-[#181615] p-4 shadow-[0_12px_36px_-15px_rgba(0,0,0,0.12)] dark:shadow-none" />
+					
+					{/* Main love days tracker card */}
 					<Link
 						href={adminHref}
-						className="absolute bottom-2 left-1/2 h-72 w-56 -translate-x-1/2 rounded-lg border border-white/80 bg-card p-5 shadow-2xl transition-all duration-200 hover:shadow-3xl hover:-translate-y-1 hover:border-primary/30 group"
+						className="absolute bottom-6 left-1/2 h-72 w-56 -translate-x-1/2 rounded-md border border-border/60 bg-card p-6 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.12)] dark:shadow-none transition-all duration-300 hover:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.18)] hover:-translate-y-1.5 hover:border-primary/40 group"
 					>
-						<div className="flex h-full flex-col justify-between rounded-md border border-dashed border-primary/30 bg-background/80 p-5 transition-colors group-hover:border-primary/60">
-							<div>
-								<p className="text-sm text-muted-foreground">我们已经一起走过</p>
-								<p className="mt-3 text-6xl font-semibold tracking-normal text-primary">
-									{loveDays}<span className="mt-1 text-sm text-muted-foreground">天</span>
-								</p>
-
+						<div className="flex h-full flex-col justify-between rounded-sm border border-dashed border-border bg-background/30 p-5 transition-colors group-hover:border-primary/30">
+							<div className="space-y-4">
+								<p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground/80">我们已经一起走过</p>
+								<div className="space-y-0.5">
+									<p className="text-6xl font-light tracking-tighter text-primary">
+										{loveDays}
+									</p>
+									<p className="text-xs tracking-wider text-muted-foreground font-medium">DAYS</p>
+								</div>
+							</div>
+							<div className="text-[10px] tracking-wider text-primary/80 font-medium border-t border-border/40 pt-4 flex items-center justify-between">
+								<span>ENTER BACKSTAGE</span>
+								<ArrowRight className="size-3 group-hover:translate-x-0.5 transition-transform" />
 							</div>
 						</div>
 					</Link>
