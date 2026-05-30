@@ -19,7 +19,7 @@ export function LetterCard({ letter }: { letter: MemoryLetter }) {
 				{letter.content}
 			</p>
 			<div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-				<span>{letter.author || "我们"}</span>
+				<span>{letter.author || letter.createdBy || "我们"}</span>
 				<div className="text-xs text-muted-foreground/60 text-right">
 					记录于 {formatDisplayDateTime(letter.createdAt)}
 				</div>

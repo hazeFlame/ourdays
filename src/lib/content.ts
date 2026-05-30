@@ -307,12 +307,16 @@ export async function getPublicLetters(limit?: number) {
 		fallback: limit ? fallbackLetters.slice(0, limit) : fallbackLetters,
 		query: async () => {
 			const query = getDb()
-				.select()
+				.select({
+					letter: letters,
+					createdByName: user.name,
+				})
 				.from(letters)
+				.leftJoin(user, eq(letters.createdByUserId, user.id))
 				.where(eq(letters.visibility, "public"))
 				.orderBy(desc(letters.createdAt));
 			const rows = limit ? await query.limit(limit) : await query;
-			return rows.map((row) => toLetter(row));
+			return rows.map(({ letter, createdByName }) => toLetter(letter, createdByName));
 		},
 	});
 }
