@@ -60,12 +60,15 @@ export function TimelineList({
 
 							{/* 关联的主题相册缩略图列表 */}
 							{photos && event.photoId && (() => {
-								const albumPhotos = photos.filter((p) => p.title === event.photoId);
+								const targetPhoto = photos.find((p) => p.id === event.photoId);
+								const albumTitle = targetPhoto?.title;
+								if (!albumTitle) return null;
+								const albumPhotos = photos.filter((p) => p.title === albumTitle);
 								if (albumPhotos.length === 0) return null;
 								return (
 									<div className="mt-4 space-y-2 border-t pt-3">
 										<p className="text-xs font-semibold text-primary flex items-center gap-1.5">
-											<span>关联相册：{event.photoId}</span>
+											<span>关联相册：{albumTitle}</span>
 											<span className="rounded-full bg-primary/10 px-1.5 py-0.5 font-normal text-[10px]">
 												{albumPhotos.length} 张照片
 											</span>

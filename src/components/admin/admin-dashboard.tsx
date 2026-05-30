@@ -34,6 +34,8 @@ import {
 	updatePhoto,
 	updateSettings,
 	updateTimelineEvent,
+	updateAlbum,
+	deleteAlbum,
 } from "@/lib/actions/content";
 import type {
 	MemoryAnniversary,
@@ -836,6 +838,7 @@ export function AdminDashboard({
 							photos={photos}
 							files={uploadFiles}
 							onFilesChange={setUploadFiles}
+							uploadFile={uploadFile}
 						/>
 					)}
 					{activeTab === "letters" && (
@@ -888,6 +891,7 @@ function PhotosTab({
 	photos,
 	files,
 	onFilesChange,
+	uploadFile,
 }: {
 	isPending: boolean;
 	onDelete: (action: Promise<ActionResult>, message: string) => Promise<void>;
@@ -895,38 +899,39 @@ function PhotosTab({
 	photos: MemoryPhoto[];
 	files: UploadItem[];
 	onFilesChange: (files: UploadItem[]) => void;
+	uploadFile: (file: File, kind: string, onProgress?: (percent: number) => void) => Promise<string>;
 }) {
 	return (
 		<div className="space-y-8">
-			{/* Add photo */}
+			{/* Create Album */}
 			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
-				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">添加新照片</h2>
+				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">新建相册</h2>
 				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
 					<input type="hidden" name="visibility" value="public" />
-					<Field label="标题">
-						<input className={inputClass} name="title" placeholder="照片名字（选填，不填默认使用文件名）" />
+					<Field label="相册标题">
+						<input className={inputClass} name="title" required placeholder="例如：千岛湖之旅" />
 					</Field>
-					<Field label="地点">
+					<Field label="拍摄地点">
 						<input className={inputClass} name="location" placeholder="在哪里拍的？" />
 					</Field>
 					<div className="md:col-span-2">
-						<Field label="说明">
-							<textarea className={textareaClass} name="description" placeholder="这张照片背后的故事…" />
+						<Field label="相册说明">
+							<textarea className={textareaClass} name="description" placeholder="这个相册背后的故事…" />
 						</Field>
 					</div>
 					<div className="md:col-span-2">
-						<ImageUpload label="选择照片" name="image" multiple files={files} onChange={onFilesChange} />
+						<ImageUpload label="选择相册照片" name="image" multiple files={files} onChange={onFilesChange} />
 					</div>
 					<div className="md:col-span-2">
 						<Button disabled={isPending} type="submit">
 							<Plus className="size-4" />
-							添加照片
+							创建相册
 						</Button>
 					</div>
 				</form>
 			</div>
 
-			{/* Existing photos grouped by title */}
+			{/* Existing albums grouped by title */}
 			{photos.length > 0 && (() => {
 				const groupMap = new Map<string, MemoryPhoto[]>();
 				for (const p of photos) {
@@ -937,29 +942,18 @@ function PhotosTab({
 				return (
 					<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
 						<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">
-							已有照片（{groups.length} 个主题 · 共 {photos.length} 张）
+							已有相册 ({groups.length})
 						</h2>
-						<div className="space-y-6">
+						<div className="space-y-4">
 							{groups.map(([title, groupPhotos]) => (
-								<div key={title}>
-									<p className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-										<span>{title}</span>
-										<span className="rounded-full bg-muted px-1.5 py-0.5 font-normal normal-case">
-											{groupPhotos.length} 张
-										</span>
-									</p>
-									<div className="space-y-2">
-										{groupPhotos.map((photo) => (
-											<PhotoItem
-												isPending={isPending}
-												key={photo.id}
-												onDelete={onDelete}
-												onSubmit={onSubmit}
-												photo={photo}
-											/>
-										))}
-									</div>
-								</div>
+								<AlbumItem
+									key={title}
+									albumTitle={title}
+									photos={groupPhotos}
+									isPending={isPending}
+									onDelete={onDelete}
+									uploadFile={uploadFile}
+								/>
 							))}
 						</div>
 					</div>
@@ -969,97 +963,207 @@ function PhotosTab({
 	);
 }
 
-function PhotoItem({
+function AlbumItem({
+	albumTitle,
+	photos,
 	isPending,
 	onDelete,
-	onSubmit,
-	photo,
+	uploadFile,
 }: {
+	albumTitle: string;
+	photos: MemoryPhoto[];
 	isPending: boolean;
 	onDelete: (action: Promise<ActionResult>, message: string) => Promise<void>;
-	onSubmit: (event: FormEvent<HTMLFormElement>, id?: string) => Promise<void>;
-	photo: MemoryPhoto;
+	uploadFile: (file: File, kind: string, onProgress?: (percent: number) => void) => Promise<string>;
 }) {
 	const [open, setOpen] = useState(false);
+	const [pending, setPending] = useState(false);
+	const router = useRouter();
+
+	const coverPhoto = photos[0]; // 相册封面
+
+	// 提交整个相册的更新
+	const handleSaveAlbum = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		const formData = new FormData(e.currentTarget);
+		const title = getString(formData, "title");
+		const location = getString(formData, "location");
+		const description = getString(formData, "description");
+
+		setPending(true);
+		try {
+			await onDelete(
+				updateAlbum(albumTitle, { title, location, description }),
+				"相册已更新。"
+			);
+		} finally {
+			setPending(false);
+		}
+	};
 
 	return (
 		<div className="overflow-hidden rounded-lg border bg-background">
+			{/* 折叠头部 */}
 			<button
 				className="flex w-full items-center gap-4 p-4 text-left transition hover:bg-muted/40"
 				onClick={() => setOpen((v) => !v)}
 				type="button"
 			>
-				{photo.thumbnailUrl || photo.url ? (
+				{coverPhoto?.thumbnailUrl || coverPhoto?.url ? (
 					// eslint-disable-next-line @next/next/no-img-element
 					<img
-						alt={photo.title}
-						className="size-12 shrink-0 rounded-lg object-cover"
-						src={photo.thumbnailUrl ?? photo.url ?? ""}
+						alt={albumTitle}
+						className="size-16 shrink-0 rounded-lg object-cover border"
+						src={coverPhoto.thumbnailUrl ?? coverPhoto.url ?? ""}
 					/>
 				) : (
-					<div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-muted">
-						<ImagePlus className="size-5 text-muted-foreground" />
+					<div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted border border-dashed">
+						<Plus className="size-5 text-muted-foreground" />
 					</div>
 				)}
 				<div className="min-w-0 flex-1">
-					<p className="truncate font-medium">{photo.title}</p>
-					<p className="text-xs text-muted-foreground">
-						{photo.visibility === "public" ? "公开" : "私密"}
-						{photo.location ? ` · ${photo.location}` : ""}
-						{photo.createdBy ? ` · ${photo.createdBy} 创建` : ""}
+					<p className="truncate text-base font-semibold">{albumTitle}</p>
+					<p className="text-xs text-muted-foreground mt-1 space-x-2">
+						<span>共 {photos.length} 张照片</span>
+						{coverPhoto?.location && <span> · {coverPhoto.location}</span>}
 					</p>
 				</div>
-				<span className="text-xs text-muted-foreground">{open ? "收起" : "展开"}</span>
+				<span className="text-xs text-muted-foreground">{open ? "收起" : "管理相册"}</span>
 			</button>
 
 			{open && (
-				<form
-					className="border-t p-2 sm:p-4"
-					onSubmit={(e) => onSubmit(e, photo.id)}
-				>
-					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
-						<input type="hidden" name="visibility" value="public" />
-						<input type="hidden" name="takenAt" defaultValue={toDateInputValue(photo.takenAt)} />
-						<Field label="标题">
-							<input className={inputClass} defaultValue={photo.title} name="title" />
+				<div className="border-t p-4 sm:p-5 space-y-6 bg-muted/5">
+					{/* 编辑相册属性 */}
+					<form className="grid gap-3 sm:gap-4 sm:grid-cols-2" onSubmit={handleSaveAlbum}>
+						<Field label="相册名称">
+							<input className={inputClass} defaultValue={albumTitle} name="title" required />
 						</Field>
-						<Field label="地点">
-							<input className={inputClass} defaultValue={photo.location ?? ""} name="location" />
-						</Field>
-						<Field label="排序权重" hint="数字越大越靠前">
-							<input
-								className={inputClass}
-								defaultValue={photo.sortOrder}
-								name="sortOrder"
-								type="number"
-							/>
-						</Field>
-						<Field label="说明">
-							<textarea
-								className={textareaClass}
-								defaultValue={photo.description ?? ""}
-								name="description"
-							/>
+						<Field label="拍摄地点">
+							<input className={inputClass} defaultValue={coverPhoto?.location ?? ""} name="location" />
 						</Field>
 						<div className="md:col-span-2">
-							<ImageUpload existingUrl={photo.url} label="替换照片（不选则保留原图）" name="image" />
+							<Field label="相册说明">
+								<textarea
+									className={textareaClass}
+									defaultValue={coverPhoto?.description ?? ""}
+									name="description"
+								/>
+							</Field>
 						</div>
 						<div className="flex gap-2 md:col-span-2">
-							<Button disabled={isPending} type="submit">保存</Button>
+							<Button disabled={isPending || pending} type="submit">保存相册信息</Button>
 							<Button
-								disabled={isPending}
-								onClick={() => onDelete(deletePhoto(photo.id), "照片已删除。")}
+								disabled={isPending || pending}
+								onClick={() => onDelete(deleteAlbum(albumTitle), "相册已删除。")}
 								type="button"
 								variant="destructive"
 							>
 								<Trash2 className="size-4" />
-								删除
+								删除整个相册
 							</Button>
 						</div>
+					</form>
+
+					{/* 相册照片网格及管理 */}
+					<div className="border-t pt-4">
+						<p className="text-sm font-semibold mb-3">相册照片管理</p>
+						<div className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8">
+							{/* 单张照片展示和单独删除 */}
+							{photos.map((photo) => (
+								<div key={photo.id} className="relative aspect-square rounded-lg border bg-muted overflow-hidden group">
+									{/* eslint-disable-next-line @next/next/no-img-element */}
+									<img
+										alt={photo.title}
+										className="h-full w-full object-cover"
+										src={photo.thumbnailUrl ?? photo.url ?? ""}
+									/>
+									{/* 单张删除小红叉 */}
+									<button
+										className="absolute top-1 right-1 z-10 grid size-6 place-items-center rounded-full bg-red-500/90 text-white shadow hover:bg-red-600 transition duration-150 active:scale-90"
+										onClick={() => onDelete(deletePhoto(photo.id), "照片已删除。")}
+										type="button"
+										title="删除照片"
+									>
+										<X className="size-3.5" />
+									</button>
+								</div>
+							))}
+							{/* 追加照片按钮 */}
+							<AlbumAddPhotos
+								albumTitle={albumTitle}
+								albumLocation={coverPhoto?.location ?? undefined}
+								albumDescription={coverPhoto?.description ?? undefined}
+								uploadFile={uploadFile}
+							/>
+						</div>
 					</div>
-				</form>
+				</div>
 			)}
 		</div>
+	);
+}
+
+function AlbumAddPhotos({
+	albumTitle,
+	albumLocation,
+	albumDescription,
+	uploadFile,
+}: {
+	albumTitle: string;
+	albumLocation?: string;
+	albumDescription?: string;
+	uploadFile: (file: File, kind: string, onProgress?: (percent: number) => void) => Promise<string>;
+}) {
+	const [uploading, setUploading] = useState(false);
+	const router = useRouter();
+
+	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const filesList = Array.from(e.target.files || []);
+		if (filesList.length === 0) return;
+
+		setUploading(true);
+		try {
+			for (const file of filesList) {
+				const compressed = await compressAndConvertToWebp(file, 0.8, 1200);
+				const imageUrl = await uploadFile(compressed, "photo");
+				await createPhoto({
+					title: albumTitle,
+					imageUrl,
+					location: albumLocation,
+					description: albumDescription,
+					visibility: "public",
+				});
+			}
+			router.refresh();
+		} catch (err) {
+			alert(err instanceof Error ? err.message : "追加照片失败");
+		} finally {
+			setUploading(false);
+		}
+	};
+
+	return (
+		<label className="relative flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/10 cursor-pointer hover:bg-muted/30 transition-all select-none active:scale-[0.96] text-center p-1">
+			<input
+				type="file"
+				multiple
+				accept="image/*"
+				className="hidden"
+				onChange={handleFileChange}
+				disabled={uploading}
+			/>
+			{uploading ? (
+				<>
+					<Loader2 className="size-4 animate-spin text-primary" />
+					<span className="text-[9px] text-muted-foreground leading-tight">追加中...</span>
+				</>
+			) : (
+				<>
+					<Plus className="size-4 text-muted-foreground/75" />
+					<span className="text-[9px] text-muted-foreground font-medium leading-tight">追加照片</span>
+				</>
+			)}
+		</label>
 	);
 }
 
@@ -1213,10 +1317,15 @@ function TimelineTab({
 	photos: MemoryPhoto[];
 	timeline: MemoryTimelineEvent[];
 }) {
-	const albumTitles = Array.from(new Set(photos.map((p) => p.title).filter(Boolean)));
+	const albumGroups: Record<string, string> = {};
+	for (const p of photos) {
+		if (p.title && !albumGroups[p.title]) {
+			albumGroups[p.title] = p.id;
+		}
+	}
 
-	const albumOptions = albumTitles.map((title) => (
-		<option key={title} value={title}>
+	const albumOptions = Object.entries(albumGroups).map(([title, photoId]) => (
+		<option key={photoId} value={photoId}>
 			{title}
 		</option>
 	));

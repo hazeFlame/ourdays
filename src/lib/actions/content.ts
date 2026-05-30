@@ -237,6 +237,49 @@ export async function deletePhoto(id: string): Promise<ActionResult> {
 	}
 }
 
+export async function updateAlbum(
+	oldTitle: string,
+	input: { title: string; location?: string; description?: string }
+): Promise<ActionResult> {
+	await requireUser();
+
+	const title = cleanText(input.title);
+
+	if (!title) {
+		return { error: "相册标题不能为空。" };
+	}
+
+	try {
+		await getDb()
+			.update(photos)
+			.set({
+				title,
+				location: optionalText(input.location),
+				description: optionalText(input.description),
+			})
+			.where(eq(photos.title, oldTitle));
+
+		revalidateMemoryPaths();
+		return { ok: true };
+	} catch (error) {
+		return {
+			error: error instanceof Error ? error.message : "相册更新失败。",
+		};
+	}
+}
+
+export async function deleteAlbum(title: string): Promise<ActionResult> {
+	await requireUser();
+
+	try {
+		await getDb().delete(photos).where(eq(photos.title, title));
+		revalidateMemoryPaths();
+		return { ok: true };
+	} catch {
+		return { error: "相册删除失败。" };
+	}
+}
+
 export async function createLetter(input: LetterInput): Promise<ActionResult> {
 	const user = await requireUser();
 	const createdBy = user.id;
