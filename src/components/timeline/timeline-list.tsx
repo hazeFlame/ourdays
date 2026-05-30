@@ -21,7 +21,7 @@ export function TimelineList({
 				<div className="absolute left-4 top-2 hidden h-[calc(100%-1rem)] w-px bg-border sm:block" />
 				{events.map((event, index) => (
 					<article className="relative w-[340px] max-w-[85vw] shrink-0 pl-0 sm:w-auto sm:shrink sm:pl-12" key={event.id}>
-						{/* 移动端顶部显示的 地点和时间 */}
+						{/* 移动端顶部显示的 地点、时间和记录人 */}
 						<div className="flex flex-col items-center text-center text-xs text-muted-foreground mb-1.5 sm:hidden">
 							{event.location && (
 								<span className="inline-flex items-center gap-1 font-semibold text-foreground text-sm">
@@ -29,9 +29,17 @@ export function TimelineList({
 									{event.location}
 								</span>
 							)}
-							<span className="text-[10px] text-muted-foreground/70 mt-0.5">
-								{formatDisplayDateTime(event.createdAt)}
-							</span>
+							<div className="flex items-center gap-2 mt-0.5">
+								<span className="text-[10px] text-muted-foreground/70">
+									{formatDisplayDateTime(event.createdAt)}
+								</span>
+								{event.createdBy && (
+									<span className="text-[10px] text-muted-foreground/60 border-l pl-2 flex items-center gap-1">
+										<UserCircle2 className="size-3 text-muted-foreground/45" />
+										{event.createdBy}
+									</span>
+								)}
+							</div>
 						</div>
 
 						{/* 移动端横排拼接时间轴线及小圆点 */}
@@ -116,7 +124,7 @@ export function TimelineList({
 							})()}
 
 							{event.createdBy ? (
-								<p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground border-t pt-2">
+								<p className="hidden sm:flex mt-3 items-center gap-1.5 text-xs text-muted-foreground border-t pt-2">
 									<UserCircle2 className="size-3" />
 									由 {event.createdBy} 记录
 								</p>

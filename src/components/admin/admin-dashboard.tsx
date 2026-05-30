@@ -72,7 +72,7 @@ type ActionResult = {
 type Tab = "photos" | "letters" | "timeline" | "anniversaries" | "settings";
 
 const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-	{ id: "photos", label: "照片", icon: <ImagePlus className="size-4" /> },
+	{ id: "photos", label: "相册", icon: <ImagePlus className="size-4" /> },
 	{ id: "letters", label: "情书", icon: <PenLine className="size-4" /> },
 	{ id: "timeline", label: "时间线", icon: <Clock className="size-4" /> },
 	{ id: "anniversaries", label: "纪念日", icon: <CalendarHeart className="size-4" /> },

@@ -56,7 +56,7 @@ export function HomeHero({
 					<div className="flex flex-wrap gap-3">
 						<Link className={cn(buttonVariants({ size: "lg" }), "h-11 px-4")} href="/photos">
 							<Images className="size-4" />
-							看照片墙
+							看相册
 						</Link>
 						<Link
 							className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-11 px-4")}

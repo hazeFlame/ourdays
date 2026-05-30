@@ -25,7 +25,7 @@ import {
 
 const navItems = [
 	["故事", "/story"],
-	["照片墙", "/photos"],
+	["相册", "/photos"],
 	["时间线", "/timeline"],
 	["纪念日", "/anniversaries"],
 	["情书", "/letters"],
@@ -33,7 +33,7 @@ const navItems = [
 
 const mobileNavItems = [
 	{ label: "故事", href: "/story", icon: <BookOpen className="size-4" />, desc: "我们的爱情自传" },
-	{ label: "照片墙", href: "/photos", icon: <Image className="size-4" />, desc: "定格的甜蜜瞬间" },
+	{ label: "相册", href: "/photos", icon: <Image className="size-4" />, desc: "定格的甜蜜瞬间" },
 	{ label: "时间线", href: "/timeline", icon: <Clock className="size-4" />, desc: "一起走过的足迹" },
 	{ label: "纪念日", href: "/anniversaries", icon: <CalendarHeart className="size-4" />, desc: "每一个重要日子" },
 	{ label: "情书", href: "/letters", icon: <PenLine className="size-4" />, desc: "写给彼此的悄悄话" },
