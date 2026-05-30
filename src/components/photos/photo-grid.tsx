@@ -174,7 +174,6 @@ export function PhotoGrid({
 									{cover.description || "这个相册还在等一句说明。"}
 								</p>
 								<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-									<span>{formatDisplayDate(cover.takenAt)}</span>
 									{cover.location ? (
 										<span className="inline-flex items-center gap-1">
 											<MapPin className="size-3" />
@@ -289,7 +288,6 @@ export function PhotoGrid({
 								</p>
 							) : null}
 							<div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-								<span>{formatDisplayDate(selectedGroup.photos[photoIndex].takenAt)}</span>
 								{selectedGroup.photos[photoIndex].location ? (
 									<span className="inline-flex items-center gap-1">
 										<MapPin className="size-3" />

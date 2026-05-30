@@ -681,7 +681,6 @@ export function AdminDashboard({
 
 		if (!validate([
 			{ value: title, label: "标题" },
-			{ value: eventDate, label: "日期" },
 		])) return;
 
 		const input = {
@@ -903,17 +902,9 @@ function PhotosTab({
 			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
 				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">添加新照片</h2>
 				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
+					<input type="hidden" name="visibility" value="public" />
 					<Field label="标题">
 						<input className={inputClass} name="title" placeholder="照片名字（选填，不填默认使用文件名）" />
-					</Field>
-					<Field label="可见性">
-						<select className={selectClass} name="visibility">
-							<option value="public">公开展示</option>
-							<option value="private">私密</option>
-						</select>
-					</Field>
-					<Field label="拍摄日期">
-						<input className={inputClass} name="takenAt" type="date" />
 					</Field>
 					<Field label="地点">
 						<input className={inputClass} name="location" placeholder="在哪里拍的？" />
@@ -1027,22 +1018,10 @@ function PhotoItem({
 					onSubmit={(e) => onSubmit(e, photo.id)}
 				>
 					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+						<input type="hidden" name="visibility" value="public" />
+						<input type="hidden" name="takenAt" defaultValue={toDateInputValue(photo.takenAt)} />
 						<Field label="标题">
 							<input className={inputClass} defaultValue={photo.title} name="title" />
-						</Field>
-						<Field label="可见性">
-							<select className={selectClass} defaultValue={photo.visibility} name="visibility">
-								<option value="public">公开展示</option>
-								<option value="private">私密</option>
-							</select>
-						</Field>
-						<Field label="日期">
-							<input
-								className={inputClass}
-								defaultValue={toDateInputValue(photo.takenAt)}
-								name="takenAt"
-								type="date"
-							/>
 						</Field>
 						<Field label="地点">
 							<input className={inputClass} defaultValue={photo.location ?? ""} name="location" />
@@ -1104,20 +1083,12 @@ function LettersTab({
 			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
 				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">写一封新情书</h2>
 				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
+					<input type="hidden" name="visibility" value="public" />
 					<Field label="标题">
 						<input className={inputClass} name="title" placeholder="信的题目" />
 					</Field>
 					<Field label="作者">
 						<input className={inputClass} name="author" placeholder="写信的人" />
-					</Field>
-					<Field label="日期">
-						<input className={inputClass} name="writtenAt" type="date" />
-					</Field>
-					<Field label="可见性">
-						<select className={selectClass} defaultValue="private" name="visibility">
-							<option value="public">公开展示</option>
-							<option value="private">私密</option>
-						</select>
 					</Field>
 					<div className="md:col-span-2">
 						<Field label="正文">
@@ -1188,25 +1159,13 @@ function LetterItem({
 			{open && (
 				<form className="border-t p-2 sm:p-4" onSubmit={(e) => onSubmit(e, letter.id)}>
 					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+						<input type="hidden" name="visibility" value="public" />
+						<input type="hidden" name="writtenAt" defaultValue={toDateInputValue(letter.writtenAt)} />
 						<Field label="标题">
 							<input className={inputClass} defaultValue={letter.title} name="title" />
 						</Field>
 						<Field label="作者">
 							<input className={inputClass} defaultValue={letter.author ?? ""} name="author" />
-						</Field>
-						<Field label="日期">
-							<input
-								className={inputClass}
-								defaultValue={toDateInputValue(letter.writtenAt)}
-								name="writtenAt"
-								type="date"
-							/>
-						</Field>
-						<Field label="可见性">
-							<select className={selectClass} defaultValue={letter.visibility} name="visibility">
-								<option value="public">公开展示</option>
-								<option value="private">私密</option>
-							</select>
 						</Field>
 						<div className="md:col-span-2">
 							<Field label="正文">
@@ -1265,11 +1224,9 @@ function TimelineTab({
 			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
 				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">添加新事件</h2>
 				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
+					<input type="hidden" name="visibility" value="public" />
 					<Field label="标题">
 						<input className={inputClass} name="title" placeholder="发生了什么？" />
-					</Field>
-					<Field label="日期">
-						<input className={inputClass} name="eventDate" type="date" />
 					</Field>
 					<Field label="地点">
 						<input className={inputClass} name="location" placeholder="在哪里？" />
@@ -1278,12 +1235,6 @@ function TimelineTab({
 						<select className={selectClass} name="photoId">
 							<option value="">不关联</option>
 							{photoOptions}
-						</select>
-					</Field>
-					<Field label="可见性">
-						<select className={selectClass} name="visibility">
-							<option value="public">公开展示</option>
-							<option value="private">私密</option>
 						</select>
 					</Field>
 					<Field label="说明">
@@ -1356,16 +1307,10 @@ function TimelineItem({
 			{open && (
 				<form className="border-t p-2 sm:p-4" onSubmit={(e) => onSubmit(e, event.id)}>
 					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+						<input type="hidden" name="visibility" value="public" />
+						<input type="hidden" name="eventDate" defaultValue={toDateInputValue(event.eventDate)} />
 						<Field label="标题">
 							<input className={inputClass} defaultValue={event.title} name="title" />
-						</Field>
-						<Field label="日期">
-							<input
-								className={inputClass}
-								defaultValue={toDateInputValue(event.eventDate)}
-								name="eventDate"
-								type="date"
-							/>
 						</Field>
 						<Field label="地点">
 							<input className={inputClass} defaultValue={event.location ?? ""} name="location" />
@@ -1374,12 +1319,6 @@ function TimelineItem({
 							<select className={selectClass} defaultValue={event.photoId ?? ""} name="photoId">
 								<option value="">不关联</option>
 								{photoOptions}
-							</select>
-						</Field>
-						<Field label="可见性">
-							<select className={selectClass} defaultValue={event.visibility} name="visibility">
-								<option value="public">公开展示</option>
-								<option value="private">私密</option>
 							</select>
 						</Field>
 						<Field label="说明">
@@ -1428,22 +1367,14 @@ function AnniversariesTab({
 			<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
 				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">添加纪念日</h2>
 				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
+					<input type="hidden" name="type" value="annual" />
+					<input type="hidden" name="isPrimary" value="on" />
 					<Field label="标题">
 						<input className={inputClass} name="title" placeholder="叫什么名字？" />
 					</Field>
 					<Field label="日期">
 						<input className={inputClass} name="date" type="date" />
 					</Field>
-					<Field label="类型">
-						<select className={selectClass} name="type">
-							<option value="annual">每年重复</option>
-							<option value="once">一次性日期</option>
-						</select>
-					</Field>
-					<label className="flex items-center gap-2 pt-7 text-sm font-medium">
-						<input className="size-4 accent-primary" name="isPrimary" type="checkbox" />
-						设为主要纪念日
-					</label>
 					<div className="md:col-span-2">
 						<Field label="说明">
 							<textarea className={textareaClass} name="description" placeholder="这个日子的故事…" />
@@ -1517,27 +1448,14 @@ function AnniversaryItem({
 			{open && (
 				<form className="border-t p-2 sm:p-4" onSubmit={(e) => onSubmit(e, item.id)}>
 					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+						<input type="hidden" name="type" value="annual" />
+						<input type="hidden" name="isPrimary" value="on" />
 						<Field label="标题">
 							<input className={inputClass} defaultValue={item.title} name="title" />
 						</Field>
 						<Field label="日期">
 							<input className={inputClass} defaultValue={item.date} name="date" type="date" />
 						</Field>
-						<Field label="类型">
-							<select className={selectClass} defaultValue={item.type} name="type">
-								<option value="annual">每年重复</option>
-								<option value="once">一次性日期</option>
-							</select>
-						</Field>
-						<label className="flex items-center gap-2 pt-7 text-sm font-medium">
-							<input
-								className="size-4 accent-primary"
-								defaultChecked={item.isPrimary}
-								name="isPrimary"
-								type="checkbox"
-							/>
-							主要纪念日
-						</label>
 						<div className="md:col-span-2">
 							<Field label="说明">
 								<textarea

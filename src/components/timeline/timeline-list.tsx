@@ -18,7 +18,6 @@ export function TimelineList({
 					</div>
 					<div className="rounded-lg border bg-card p-5 shadow-sm">
 						<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-							<span>{formatDisplayDate(event.eventDate)}</span>
 							{event.location ? (
 								<span className="inline-flex items-center gap-1">
 									<MapPin className="size-3" />
