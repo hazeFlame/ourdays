@@ -49,6 +49,9 @@ export default async function AnniversariesPage() {
 											{item.description}
 										</p>
 									) : null}
+									<p className="mt-3 text-xs text-muted-foreground/60">
+										记录于 {formatDisplayDate(item.createdAt)}
+									</p>
 								</div>
 							</div>
 						</article>

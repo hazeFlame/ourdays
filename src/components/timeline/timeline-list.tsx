@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { MapPin, UserCircle2 } from "lucide-react";
 
 import type { MemoryTimelineEvent } from "@/lib/content";
 import { formatDisplayDate } from "@/lib/date";
@@ -28,11 +28,18 @@ export function TimelineList({
 							<span className="rounded-full bg-secondary px-2 py-0.5">
 								{event.visibility === "private" ? "私密" : "公开"}
 							</span>
+							<span className="text-muted-foreground/60">记录于 {formatDisplayDate(event.createdAt)}</span>
 						</div>
 						<h3 className="mt-3 text-xl font-semibold">{event.title}</h3>
 						{event.description ? (
 							<p className="mt-2 leading-7 text-muted-foreground">
 								{event.description}
+							</p>
+						) : null}
+						{event.createdBy ? (
+							<p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+								<UserCircle2 className="size-3" />
+								由 {event.createdBy} 记录
 							</p>
 						) : null}
 					</div>

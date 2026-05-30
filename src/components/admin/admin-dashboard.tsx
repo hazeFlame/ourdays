@@ -923,23 +923,45 @@ function PhotosTab({
 				</form>
 			</div>
 
-			{/* Existing photos */}
-			{photos.length > 0 && (
-				<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
-					<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">已有照片 ({photos.length})</h2>
-					<div className="space-y-3">
-						{photos.map((photo) => (
-							<PhotoItem
-								isPending={isPending}
-								key={photo.id}
-								onDelete={onDelete}
-								onSubmit={onSubmit}
-								photo={photo}
-							/>
-						))}
+			{/* Existing photos grouped by title */}
+			{photos.length > 0 && (() => {
+				const groupMap = new Map<string, MemoryPhoto[]>();
+				for (const p of photos) {
+					if (!groupMap.has(p.title)) groupMap.set(p.title, []);
+					groupMap.get(p.title)!.push(p);
+				}
+				const groups = Array.from(groupMap.entries());
+				return (
+					<div className="rounded-xl border bg-card p-3 shadow-sm sm:p-5">
+						<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">
+							已有照片（{groups.length} 个主题 · 共 {photos.length} 张）
+						</h2>
+						<div className="space-y-6">
+							{groups.map(([title, groupPhotos]) => (
+								<div key={title}>
+									<p className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+										<span>{title}</span>
+										<span className="rounded-full bg-muted px-1.5 py-0.5 font-normal normal-case">
+											{groupPhotos.length} 张
+										</span>
+									</p>
+									<div className="space-y-2">
+										{groupPhotos.map((photo) => (
+											<PhotoItem
+												isPending={isPending}
+												key={photo.id}
+												onDelete={onDelete}
+												onSubmit={onSubmit}
+												photo={photo}
+											/>
+										))}
+									</div>
+								</div>
+							))}
+						</div>
 					</div>
-				</div>
-			)}
+				);
+			})()}
 		</div>
 	);
 }

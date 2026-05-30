@@ -340,12 +340,16 @@ export async function getPublicTimelineEvents(limit?: number) {
 		fallback: limit ? fallbackTimeline.slice(0, limit) : fallbackTimeline,
 		query: async () => {
 			const query = getDb()
-				.select()
+				.select({
+					event: timelineEvents,
+					createdByName: user.name,
+				})
 				.from(timelineEvents)
+				.leftJoin(user, eq(timelineEvents.createdByUserId, user.id))
 				.where(eq(timelineEvents.visibility, "public"))
-				.orderBy(desc(timelineEvents.eventDate));
+				.orderBy(desc(timelineEvents.createdAt));
 			const rows = limit ? await query.limit(limit) : await query;
-			return rows.map((row) => toTimelineEvent(row));
+			return rows.map(({ event, createdByName }) => toTimelineEvent(event, createdByName));
 		},
 	});
 }
@@ -361,7 +365,7 @@ export async function getAllTimelineEvents() {
 				})
 				.from(timelineEvents)
 				.leftJoin(user, eq(timelineEvents.createdByUserId, user.id))
-				.orderBy(desc(timelineEvents.eventDate));
+				.orderBy(desc(timelineEvents.createdAt));
 			return rows.map(({ event, createdByName }) => toTimelineEvent(event, createdByName));
 		},
 		useFallbackWhenEmpty: false,
