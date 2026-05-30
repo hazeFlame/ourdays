@@ -84,8 +84,9 @@ export function HomeHero({
 							<div>
 								<p className="text-sm text-muted-foreground">我们已经一起走过</p>
 								<p className="mt-3 text-6xl font-semibold tracking-normal text-primary">
-									{loveDays} 天
+									{loveDays}<span className="mt-1 text-sm text-muted-foreground">天</span>
 								</p>
+
 							</div>
 						</div>
 					</Link>
