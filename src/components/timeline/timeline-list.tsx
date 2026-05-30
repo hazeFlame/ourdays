@@ -20,7 +20,20 @@ export function TimelineList({
 			<div className="relative flex flex-row overflow-x-auto gap-4 pb-4 sm:flex-col sm:space-y-6 sm:overflow-x-visible sm:pb-0 scroll-smooth">
 				<div className="absolute left-4 top-2 hidden h-[calc(100%-1rem)] w-px bg-border sm:block" />
 				{events.map((event, index) => (
-					<article className="relative w-[300px] shrink-0 pl-0 sm:w-auto sm:shrink sm:pl-12" key={event.id}>
+					<article className="relative w-[340px] max-w-[85vw] shrink-0 pl-0 sm:w-auto sm:shrink sm:pl-12" key={event.id}>
+						{/* 移动端顶部显示的 地点和时间 */}
+						<div className="flex flex-col items-center text-center text-xs text-muted-foreground mb-1.5 sm:hidden">
+							{event.location && (
+								<span className="inline-flex items-center gap-1 font-semibold text-foreground text-sm">
+									<MapPin className="size-3.5 text-primary" />
+									{event.location}
+								</span>
+							)}
+							<span className="text-[10px] text-muted-foreground/70 mt-0.5">
+								{formatDisplayDateTime(event.createdAt)}
+							</span>
+						</div>
+
 						{/* 移动端横排拼接时间轴线及小圆点 */}
 						<div className="relative flex items-center justify-center h-8 mb-2 sm:hidden">
 							{/* 左半段线：第一张卡片不显示 */}
@@ -39,7 +52,8 @@ export function TimelineList({
 						</div>
 
 						<div className="rounded-lg border bg-card p-5 shadow-sm">
-							<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+							{/* 桌面端卡片内部的 地点和时间 展示栏：仅在桌端显示 */}
+							<div className="hidden sm:flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-3">
 								{event.location ? (
 									<span className="inline-flex items-center gap-1">
 										<MapPin className="size-3" />
@@ -51,7 +65,14 @@ export function TimelineList({
 								</span>
 								<span className="text-muted-foreground/60">记录于 {formatDisplayDateTime(event.createdAt)}</span>
 							</div>
-							<h3 className="mt-3 text-lg font-semibold">{event.title}</h3>
+
+							<div className="flex items-start justify-between gap-2">
+								<h3 className="text-lg font-semibold text-foreground leading-snug">{event.title}</h3>
+								<span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground shrink-0 sm:hidden">
+									{event.visibility === "private" ? "私密" : "公开"}
+								</span>
+							</div>
+
 							{event.description ? (
 								<p className="mt-2 text-sm leading-6 text-muted-foreground whitespace-pre-line">
 									{event.description}
