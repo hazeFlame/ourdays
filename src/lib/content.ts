@@ -310,7 +310,7 @@ export async function getPublicLetters(limit?: number) {
 				.select()
 				.from(letters)
 				.where(eq(letters.visibility, "public"))
-				.orderBy(desc(letters.writtenAt), desc(letters.createdAt));
+				.orderBy(desc(letters.createdAt));
 			const rows = limit ? await query.limit(limit) : await query;
 			return rows.map((row) => toLetter(row));
 		},
@@ -328,7 +328,7 @@ export async function getAllLetters() {
 				})
 				.from(letters)
 				.leftJoin(user, eq(letters.createdByUserId, user.id))
-				.orderBy(desc(letters.writtenAt), desc(letters.createdAt));
+				.orderBy(desc(letters.createdAt));
 			return rows.map(({ letter, createdByName }) => toLetter(letter, createdByName));
 		},
 		useFallbackWhenEmpty: false,
