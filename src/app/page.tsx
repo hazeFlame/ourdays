@@ -80,7 +80,7 @@ export default async function Home() {
 							看完整时间线
 						</Link>
 					</div>
-					<TimelineList events={timeline} />
+					<TimelineList events={timeline} photos={photos} />
 				</div>
 			</section>
 

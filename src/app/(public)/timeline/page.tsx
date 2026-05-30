@@ -1,24 +1,28 @@
 import { TimelineList } from "@/components/timeline/timeline-list";
-import { getPublicTimelineEvents } from "@/lib/content";
+import { getPublicTimelineEvents, getPublicPhotos } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
 export default async function TimelinePage() {
-	const events = await getPublicTimelineEvents();
+	const [events, photos] = await Promise.all([
+		getPublicTimelineEvents(),
+		getPublicPhotos(100),
+	]);
 
 	return (
 		<div className="memory-section">
-			<div className="memory-shell grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
+			<div className="memory-shell space-y-8">
 				<div className="space-y-4">
 					<p className="memory-kicker">Timeline</p>
 					<h1 className="text-4xl font-semibold tracking-normal sm:text-5xl">
 						时间线
 					</h1>
 					<p className="text-lg leading-8 text-muted-foreground">
-						把第一次、重要日子、旅行和那些突然变得珍贵的普通时刻按顺序放好。
+						我们一起走过的路，看过的风景，做过的梦。所有美好的瞬间，都在这里被记录。
 					</p>
 				</div>
-				<TimelineList events={events} />
+
+				<TimelineList events={events} photos={photos} />
 			</div>
 		</div>
 	);

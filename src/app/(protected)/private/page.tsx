@@ -58,7 +58,7 @@ export default async function PrivatePage() {
 					<div className="space-y-5">
 						<h2 className="text-2xl font-semibold">私密时间线</h2>
 						{privateTimeline.length > 0 ? (
-							<TimelineList events={privateTimeline} />
+							<TimelineList events={privateTimeline} photos={photos} />
 						) : (
 							<p className="rounded-lg border bg-card p-6 text-muted-foreground">
 								还没有私密时间线。

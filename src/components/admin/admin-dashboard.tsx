@@ -1213,9 +1213,11 @@ function TimelineTab({
 	photos: MemoryPhoto[];
 	timeline: MemoryTimelineEvent[];
 }) {
-	const photoOptions = photos.map((p) => (
-		<option key={p.id} value={p.id}>
-			{p.title}
+	const albumTitles = Array.from(new Set(photos.map((p) => p.title).filter(Boolean)));
+
+	const albumOptions = albumTitles.map((title) => (
+		<option key={title} value={title}>
+			{title}
 		</option>
 	));
 
@@ -1231,10 +1233,10 @@ function TimelineTab({
 					<Field label="地点">
 						<input className={inputClass} name="location" placeholder="在哪里？" />
 					</Field>
-					<Field label="关联照片">
+					<Field label="关联主题相册">
 						<select className={selectClass} name="photoId">
 							<option value="">不关联</option>
-							{photoOptions}
+							{albumOptions}
 						</select>
 					</Field>
 					<Field label="说明">
@@ -1260,7 +1262,7 @@ function TimelineTab({
 								key={event.id}
 								onDelete={onDelete}
 								onSubmit={onSubmit}
-								photoOptions={photoOptions}
+								photoOptions={albumOptions}
 							/>
 						))}
 					</div>
@@ -1315,7 +1317,7 @@ function TimelineItem({
 						<Field label="地点">
 							<input className={inputClass} defaultValue={event.location ?? ""} name="location" />
 						</Field>
-						<Field label="关联照片">
+						<Field label="关联主题相册">
 							<select className={selectClass} defaultValue={event.photoId ?? ""} name="photoId">
 								<option value="">不关联</option>
 								{photoOptions}
