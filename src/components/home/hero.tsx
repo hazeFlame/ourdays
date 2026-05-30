@@ -84,18 +84,7 @@ export function HomeHero({
 							<div>
 								<p className="text-sm text-muted-foreground">我们已经一起走过</p>
 								<p className="mt-3 text-6xl font-semibold tracking-normal text-primary">
-									{loveDays}
-								</p>
-								<p className="mt-1 text-sm text-muted-foreground">天</p>
-							</div>
-							<div className="space-y-3 text-sm">
-								<p className="flex items-center gap-2">
-									<CalendarHeart className="size-4 text-primary" />
-									纪念日、照片和时间线都在这里
-								</p>
-								<p className="flex items-center gap-2 text-muted-foreground">
-									<Lock className="size-4" />
-									私密内容只在后台可见
+									{loveDays} 天
 								</p>
 							</div>
 						</div>

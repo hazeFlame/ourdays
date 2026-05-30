@@ -28,9 +28,6 @@ export default function StoryPage() {
 					<h1 className="text-4xl font-semibold tracking-normal sm:text-5xl">
 						我们的故事
 					</h1>
-					<p className="text-lg leading-8 text-muted-foreground">
-						这是第一版故事页，适合先写一条清晰的感情主线。之后后台可以继续加章节、加照片、加时间线事件。
-					</p>
 					<Link className={cn(buttonVariants(), "w-fit")} href="/timeline">
 						去看时间线
 						<ArrowRight className="size-4" />

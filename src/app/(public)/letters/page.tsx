@@ -19,16 +19,6 @@ export default async function LettersPage() {
 					<h1 className="text-4xl font-semibold tracking-normal sm:text-5xl">
 						留言 / 情书
 					</h1>
-					<p className="text-lg leading-8 text-muted-foreground">
-						这里展示公开留言。更私密的内容会留在后台，只有登录后才能编辑和查看。
-					</p>
-					<Link
-						className={cn(buttonVariants({ variant: "outline" }), "w-fit")}
-						href="/login?callbackURL=/admin"
-					>
-						<Lock className="size-4" />
-						进入后台
-					</Link>
 				</div>
 				<div className="space-y-5">
 					{letters.map((letter) => (
