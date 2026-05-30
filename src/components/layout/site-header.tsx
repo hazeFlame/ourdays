@@ -2,7 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Heart, Menu } from "lucide-react";
+import {
+	Heart,
+	Menu,
+	BookOpen,
+	Image,
+	Clock,
+	CalendarHeart,
+	PenLine,
+	ChevronRight,
+} from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -22,6 +31,14 @@ const navItems = [
 	["情书", "/letters"],
 ] as const;
 
+const mobileNavItems = [
+	{ label: "故事", href: "/story", icon: <BookOpen className="size-4" />, desc: "我们的爱情自传" },
+	{ label: "照片墙", href: "/photos", icon: <Image className="size-4" />, desc: "定格的甜蜜瞬间" },
+	{ label: "时间线", href: "/timeline", icon: <Clock className="size-4" />, desc: "一起走过的足迹" },
+	{ label: "纪念日", href: "/anniversaries", icon: <CalendarHeart className="size-4" />, desc: "每一个重要日子" },
+	{ label: "情书", href: "/letters", icon: <PenLine className="size-4" />, desc: "写给彼此的悄悄话" },
+];
+
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 	return (
 		<>
@@ -36,6 +53,30 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 				</Link>
 			))}
 		</>
+	);
+}
+
+function MobileNavLinks({ onNavigate }: { onNavigate?: () => void }) {
+	return (
+		<div className="grid gap-3">
+			{mobileNavItems.map(({ label, href, icon, desc }) => (
+				<Link
+					className="flex items-center gap-4 rounded-xl border border-border/40 bg-card p-4 transition-all duration-200 active:scale-[0.98] hover:bg-accent/40"
+					href={href}
+					key={href}
+					onClick={onNavigate}
+				>
+					<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+						{icon}
+					</div>
+					<div className="min-w-0 flex-1 space-y-0.5">
+						<p className="text-sm font-semibold text-foreground">{label}</p>
+						<p className="text-xs text-muted-foreground">{desc}</p>
+					</div>
+					<ChevronRight className="size-4 shrink-0 text-muted-foreground/45" />
+				</Link>
+			))}
+		</div>
 	);
 }
 
@@ -68,8 +109,8 @@ export function SiteHeader() {
 							<Menu className="size-5" />
 							<span className="sr-only">打开菜单</span>
 						</SheetTrigger>
-						<SheetContent className="w-72 bg-background p-0" side="right">
-							<SheetHeader className="border-b p-4 text-left">
+						<SheetContent className="flex h-full w-72 flex-col bg-background p-0" side="right">
+							<SheetHeader className="border-b p-5 text-left">
 								<SheetTitle>
 									<Link
 										className="flex items-center gap-2"
@@ -77,13 +118,17 @@ export function SiteHeader() {
 										onClick={() => setOpen(false)}
 									>
 										<Heart className="size-4 fill-primary text-primary" />
-										我们的小宇宙
+										<span className="font-semibold tracking-tight">我们的小宇宙</span>
 									</Link>
 								</SheetTitle>
 							</SheetHeader>
-							<nav className="flex flex-col p-4">
-								<NavLinks onNavigate={() => setOpen(false)} />
+							<nav className="flex-1 p-5 overflow-y-auto">
+								<MobileNavLinks onNavigate={() => setOpen(false)} />
 							</nav>
+							<div className="mt-auto border-t p-6 text-center space-y-2 bg-gradient-to-b from-transparent to-primary/5">
+								<p className="text-xs tracking-widest text-primary font-semibold uppercase">Our Little Universe</p>
+								<p className="text-xs text-muted-foreground italic">“ 遇见你，是所有美好的开始 ”</p>
+							</div>
 						</SheetContent>
 					</Sheet>
 				</div>
@@ -91,3 +136,4 @@ export function SiteHeader() {
 		</header>
 	);
 }
+
