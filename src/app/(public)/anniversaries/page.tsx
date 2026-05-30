@@ -2,7 +2,7 @@ import { CalendarHeart } from "lucide-react";
 
 import { NextAnniversary } from "@/components/home/next-anniversary";
 import { getAnniversaries } from "@/lib/content";
-import { formatDisplayDate } from "@/lib/date";
+import { formatDisplayDate, formatDisplayDateTime } from "@/lib/date";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +50,7 @@ export default async function AnniversariesPage() {
 										</p>
 									) : null}
 									<p className="mt-3 text-xs text-muted-foreground/60">
-										记录于 {formatDisplayDate(item.createdAt)}
+										记录于 {formatDisplayDateTime(item.createdAt)}
 									</p>
 								</div>
 							</div>

@@ -1,7 +1,7 @@
 import { Quote } from "lucide-react";
 
 import type { MemoryLetter } from "@/lib/content";
-import { formatDisplayDate } from "@/lib/date";
+import { formatDisplayDate, formatDisplayDateTime } from "@/lib/date";
 
 export function LetterCard({ letter }: { letter: MemoryLetter }) {
 	return (
@@ -23,7 +23,7 @@ export function LetterCard({ letter }: { letter: MemoryLetter }) {
 				<div className="flex flex-col items-end gap-0.5 text-right">
 					<span>{formatDisplayDate(letter.writtenAt ?? letter.createdAt)}</span>
 					{letter.writtenAt ? (
-						<span className="text-xs text-muted-foreground/60">记录于 {formatDisplayDate(letter.createdAt)}</span>
+						<span className="text-xs text-muted-foreground/60">记录于 {formatDisplayDateTime(letter.createdAt)}</span>
 					) : null}
 				</div>
 			</div>

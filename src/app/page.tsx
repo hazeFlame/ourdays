@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
 	const [settings, photos, letters, timeline, anniversaries] = await Promise.all([
 		getSiteSettings(),
-		getPublicPhotos(3),
+		getPublicPhotos(20),
 		getPublicLetters(1),
 		getPublicTimelineEvents(3),
 		getAnniversaries(),
@@ -63,7 +63,7 @@ export default async function Home() {
 							<ArrowRight className="size-4" />
 						</Link>
 					</div>
-					<PhotoGrid photos={photos} />
+					<PhotoGrid maxGroups={3} photos={photos} />
 				</div>
 			</section>
 

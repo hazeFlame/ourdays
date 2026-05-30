@@ -621,10 +621,22 @@ export function AdminDashboard({
 	const submitSettings = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		const formData = new FormData(event.currentTarget);
+
+		let heroImageUrl = getString(formData, "heroImageUrl");
+		const heroImageFile = getFile(formData, "heroImage");
+		if (heroImageFile) {
+			try {
+				heroImageUrl = await uploadFile(heroImageFile, "photo");
+			} catch (error) {
+				pushToast(error instanceof Error ? error.message : "Hero 图片上传失败。", true);
+				return;
+			}
+		}
+
 		await runAction(
 			updateSettings({
 				coupleNames: getString(formData, "coupleNames"),
-				heroImageUrl: getString(formData, "heroImageUrl"),
+				heroImageUrl,
 				heroSubtitle: getString(formData, "heroSubtitle"),
 				heroTitle: getString(formData, "heroTitle"),
 				loveStartDate: getString(formData, "loveStartDate"),
@@ -1598,14 +1610,8 @@ function SettingsTab({
 					</Field>
 				</div>
 				<div className="md:col-span-2">
-					<Field label="Hero 图片 URL" hint="填入图片完整地址，或使用照片上传后得到的链接">
-						<input
-							className={inputClass}
-							defaultValue={settings.heroImageUrl ?? ""}
-							name="heroImageUrl"
-							placeholder="https://..."
-						/>
-					</Field>
+					<input type="hidden" name="heroImageUrl" defaultValue={settings.heroImageUrl ?? ""} />
+					<ImageUpload existingUrl={settings.heroImageUrl} label="Hero 图片" name="heroImage" />
 				</div>
 				<div className="md:col-span-2">
 					<Button disabled={isPending} type="submit">
