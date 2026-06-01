@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "我们的小宇宙",
+	title: "给赵明的情书",
 	description: "一个收藏故事、照片、纪念日和情书的情侣纪念网站。",
 };
 
