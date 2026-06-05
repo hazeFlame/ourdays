@@ -1,4 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import sharp from "sharp";
 
 import { jsonError, jsonOk, getString } from "@/lib/api/http";
 import { getUserFromRequest } from "@/lib/auth-session";
@@ -52,18 +53,36 @@ export async function POST(request: Request) {
 		return jsonError("只支持 AVIF、GIF、JPEG、PNG、WebP 图片");
 	}
 
+	const arrayBuffer = await file.arrayBuffer();
+	const buffer = Buffer.from(arrayBuffer);
+
+	let finalBuffer: Uint8Array = buffer;
+	let finalContentType = contentType;
+	let finalSize = file.size;
+
+	if (contentType !== "image/gif") {
+		try {
+			finalBuffer = await sharp(buffer).webp({ quality: 80 }).toBuffer();
+			finalContentType = "image/webp";
+			finalSize = finalBuffer.length;
+		} catch (error) {
+			console.error("Failed to convert image to webp with sharp:", error);
+			// Fallback to original buffer if sharp fails
+		}
+	}
+
 	const { env } = getCloudflareContext();
 	const bucket = (env as CloudflareEnv).R2;
 	const key = buildTemporaryImageKey({
-		contentType,
+		contentType: finalContentType,
 		kind,
 		userId: user.id,
 	});
 
-	await bucket.put(key, file.stream(), {
+	await bucket.put(key, finalBuffer, {
 		httpMetadata: {
 			cacheControl: "public, max-age=31536000, immutable",
-			contentType,
+			contentType: finalContentType,
 		},
 		customMetadata: {
 			originalName: file.name || "upload",
@@ -74,9 +93,9 @@ export async function POST(request: Request) {
 
 	return jsonOk(
 		{
-			contentType,
+			contentType: finalContentType,
 			key,
-			size: file.size,
+			size: finalSize,
 			url: storageKeyToMediaUrl(key),
 		},
 		{ status: 201 }
