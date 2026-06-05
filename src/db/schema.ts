@@ -203,3 +203,32 @@ export const timelineEventRelations = relations(timelineEvents, ({ one }) => ({
 		references: [photos.id],
 	}),
 }));
+
+export const letterComments = sqliteTable(
+	"letter_comments",
+	{
+		id: text("id").primaryKey(),
+		letterId: text("letter_id")
+			.notNull()
+			.references(() => letters.id, { onDelete: "cascade" }),
+		author: text("author").notNull(),
+		content: text("content").notNull(),
+		createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	},
+	(table) => [
+		index("letter_comments_letter_id_idx").on(table.letterId),
+		index("letter_comments_created_at_idx").on(table.createdAt),
+	]
+);
+
+export const letterCommentsRelations = relations(letterComments, ({ one }) => ({
+	letter: one(letters, {
+		fields: [letterComments.letterId],
+		references: [letters.id],
+	}),
+}));
+
+export const lettersRelations = relations(letters, ({ many }) => ({
+	comments: many(letterComments),
+}));
+

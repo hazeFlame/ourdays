@@ -165,9 +165,9 @@ const fallbackAnniversaries: MemoryAnniversary[] = [
 ];
 
 const fallbackSettings: SiteSettings = {
-	siteTitle: "给赵明的情书",
+	siteTitle: "我们的情书",
 	coupleNames: "你和我",
-	heroTitle: "给赵明的情书",
+	heroTitle: "我们的情书",
 	heroSubtitle: "把相爱这件小事，认真收藏成一个会发光的地方。",
 	loveStartDate: "2024-05-20",
 	heroImageUrl: null,

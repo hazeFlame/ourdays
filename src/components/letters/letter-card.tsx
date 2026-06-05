@@ -2,6 +2,7 @@ import { Quote } from "lucide-react";
 
 import type { MemoryLetter } from "@/lib/content";
 import { formatDisplayDate, formatDisplayDateTime } from "@/lib/date";
+import { LetterComments } from "./letter-comments";
 
 export function LetterCard({ letter }: { letter: MemoryLetter }) {
 	return (
@@ -24,6 +25,7 @@ export function LetterCard({ letter }: { letter: MemoryLetter }) {
 					记录于 {formatDisplayDateTime(letter.createdAt)}
 				</div>
 			</div>
+			<LetterComments letterId={letter.id} />
 		</article>
 	);
 }
