@@ -123,7 +123,7 @@ export function LetterComments({ letterId }: { letterId: string }) {
 
 					<div className="flex-1 flex gap-2 items-end">
 						<textarea
-							placeholder="写下你的留言..."
+							placeholder="为你写诗..."
 							value={content}
 							onChange={(e) => setContent(e.target.value)}
 							required
