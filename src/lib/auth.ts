@@ -28,6 +28,11 @@ function initAuth() {
 	return betterAuth({
 		baseURL: requireBinding(bindings, "BETTER_AUTH_URL"),
 		secret: requireBinding(bindings, "BETTER_AUTH_SECRET"),
+		advanced: {
+			ipAddress: {
+				ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"],
+			},
+		},
 		database: drizzleAdapter(getDb(), {
 			provider: "sqlite",
 			schema,
