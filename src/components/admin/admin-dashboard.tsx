@@ -45,7 +45,18 @@ import type {
 	SiteSettings,
 } from "@/lib/content";
 import { compressAndConvertToWebp } from "@/lib/image-compress";
-import { toDateInputValue } from "@/lib/date";
+import {
+	ANNIVERSARY_TYPE_LUNAR_ANNUAL,
+	ANNIVERSARY_TYPE_OPTIONS,
+	LUNAR_DAY_OPTIONS,
+	LUNAR_MONTH_OPTIONS,
+	formatAnniversaryDisplayDate,
+	getAnniversaryTypeLabel,
+	normalizeAnniversaryType,
+	parseAnniversaryMonthDay,
+	serializeLunarAnniversaryDate,
+	toDateInputValue,
+} from "@/lib/date";
 
 type AdminDashboardProps = {
 	anniversaries: MemoryAnniversary[];
@@ -978,7 +989,6 @@ function AlbumItem({
 }) {
 	const [open, setOpen] = useState(false);
 	const [pending, setPending] = useState(false);
-	const router = useRouter();
 
 	const coverPhoto = photos[0]; // 相册封面
 
@@ -1462,6 +1472,98 @@ function TimelineItem({
 // Anniversaries Tab
 // ──────────────────────────────────────────────
 
+function AnniversaryDateFields({
+	defaultDate,
+	defaultType,
+}: {
+	defaultDate?: string;
+	defaultType?: string;
+}) {
+	const initialType = normalizeAnniversaryType(defaultType);
+	const initialParts = parseAnniversaryMonthDay(defaultDate);
+	const [selectedType, setSelectedType] = useState<string>(initialType);
+	const [solarDate, setSolarDate] = useState(
+		initialType === ANNIVERSARY_TYPE_LUNAR_ANNUAL ? "" : toDateInputValue(defaultDate)
+	);
+	const [lunarMonth, setLunarMonth] = useState(initialParts?.month ?? 1);
+	const [lunarDay, setLunarDay] = useState(Math.min(initialParts?.day ?? 1, 30));
+	const [isLeapMonth, setIsLeapMonth] = useState(initialParts?.isLeapMonth ?? false);
+	const isLunar = selectedType === ANNIVERSARY_TYPE_LUNAR_ANNUAL;
+
+	return (
+		<>
+			<Field label="日期类型">
+				<select
+					className={selectClass}
+					name="type"
+					onChange={(event) => setSelectedType(event.target.value)}
+					value={selectedType}
+				>
+					{ANNIVERSARY_TYPE_OPTIONS.map((option) => (
+						<option key={option.value} value={option.value}>
+							{option.label}
+						</option>
+					))}
+				</select>
+			</Field>
+			{isLunar ? (
+				<>
+					<input
+						name="date"
+						type="hidden"
+						value={serializeLunarAnniversaryDate(lunarMonth, lunarDay, isLeapMonth)}
+					/>
+					<Field label="农历月份">
+						<select
+							className={selectClass}
+							onChange={(event) => setLunarMonth(Number(event.target.value))}
+							value={lunarMonth}
+						>
+							{LUNAR_MONTH_OPTIONS.map((month) => (
+								<option key={month.value} value={month.value}>
+									{month.label}
+								</option>
+							))}
+						</select>
+					</Field>
+					<Field label="农历日期">
+						<select
+							className={selectClass}
+							onChange={(event) => setLunarDay(Number(event.target.value))}
+							value={lunarDay}
+						>
+							{LUNAR_DAY_OPTIONS.map((day, index) => (
+								<option key={day} value={index + 1}>
+									{day}
+								</option>
+							))}
+						</select>
+					</Field>
+					<label className="flex h-9 items-center gap-2 self-end rounded-md border border-border/70 bg-background px-3 text-xs font-medium">
+						<input
+							checked={isLeapMonth}
+							className="size-3.5 accent-primary"
+							onChange={(event) => setIsLeapMonth(event.target.checked)}
+							type="checkbox"
+						/>
+						<span>闰月</span>
+					</label>
+				</>
+			) : (
+				<Field label="日期">
+					<input
+						className={inputClass}
+						name="date"
+						onChange={(event) => setSolarDate(event.target.value)}
+						type="date"
+						value={solarDate}
+					/>
+				</Field>
+			)}
+		</>
+	);
+}
+
 function AnniversariesTab({
 	anniversaries,
 	isPending,
@@ -1478,14 +1580,11 @@ function AnniversariesTab({
 			<div className="rounded-md border border-border/60 bg-card p-4 sm:p-6 shadow-none">
 				<h2 className="mb-4 text-sm font-semibold sm:mb-5 sm:text-base">添加纪念日</h2>
 				<form className="grid gap-4 sm:gap-5 sm:grid-cols-2" onSubmit={(e) => onSubmit(e)}>
-					<input type="hidden" name="type" value="annual" />
 					<input type="hidden" name="isPrimary" value="on" />
 					<Field label="标题">
 						<input className={inputClass} name="title" placeholder="叫什么名字？" />
 					</Field>
-					<Field label="日期">
-						<input className={inputClass} name="date" type="date" />
-					</Field>
+					<AnniversaryDateFields />
 					<div className="md:col-span-2">
 						<Field label="说明">
 							<textarea className={textareaClass} name="description" placeholder="这个日子的故事…" />
@@ -1532,6 +1631,9 @@ function AnniversaryItem({
 	onSubmit: (event: FormEvent<HTMLFormElement>, id?: string) => Promise<void>;
 }) {
 	const [open, setOpen] = useState(false);
+	const dateLabel = formatAnniversaryDisplayDate(item.date, item.type);
+	const typeLabel = getAnniversaryTypeLabel(item.type);
+
 	return (
 		<div className="overflow-hidden rounded-lg border bg-background">
 			<button
@@ -1550,7 +1652,7 @@ function AnniversaryItem({
 						)}
 					</p>
 					<p className="text-xs text-muted-foreground">
-						{item.date}
+						{dateLabel} · {typeLabel}
 						{item.createdBy ? ` · ${item.createdBy} 创建` : ""}
 					</p>
 				</div>
@@ -1559,14 +1661,11 @@ function AnniversaryItem({
 			{open && (
 				<form className="border-t p-2 sm:p-4" onSubmit={(e) => onSubmit(e, item.id)}>
 					<div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
-						<input type="hidden" name="type" value="annual" />
 						<input type="hidden" name="isPrimary" value="on" />
 						<Field label="标题">
 							<input className={inputClass} defaultValue={item.title} name="title" />
 						</Field>
-						<Field label="日期">
-							<input className={inputClass} defaultValue={item.date} name="date" type="date" />
-						</Field>
+						<AnniversaryDateFields defaultDate={item.date} defaultType={item.type} />
 						<div className="md:col-span-2">
 							<Field label="说明">
 								<textarea

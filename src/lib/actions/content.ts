@@ -19,6 +19,10 @@ import {
 	type MemoryImageArchiveKind,
 } from "@/lib/r2";
 import type { Visibility } from "@/lib/content";
+import {
+	isValidAnniversaryDate,
+	normalizeAnniversaryType,
+} from "@/lib/date";
 
 type ActionResult = {
 	error?: string;
@@ -438,9 +442,14 @@ export async function createAnniversary(
 
 	const title = cleanText(input.title);
 	const date = cleanText(input.date);
+	const type = normalizeAnniversaryType(input.type);
 
 	if (!title || !date) {
 		return { error: "请填写纪念日标题和日期。" };
+	}
+
+	if (!isValidAnniversaryDate(date, type)) {
+		return { error: "请选择有效的纪念日日期。" };
 	}
 
 	try {
@@ -448,7 +457,7 @@ export async function createAnniversary(
 			id: crypto.randomUUID(),
 			title,
 			date,
-			type: cleanText(input.type, "annual"),
+			type,
 			description: optionalText(input.description),
 			isPrimary: Boolean(input.isPrimary),
 			createdAt: new Date(),
@@ -470,9 +479,14 @@ export async function updateAnniversary(
 
 	const title = cleanText(input.title);
 	const date = cleanText(input.date);
+	const type = normalizeAnniversaryType(input.type);
 
 	if (!title || !date) {
 		return { error: "请填写纪念日标题和日期。" };
+	}
+
+	if (!isValidAnniversaryDate(date, type)) {
+		return { error: "请选择有效的纪念日日期。" };
 	}
 
 	try {
@@ -481,7 +495,7 @@ export async function updateAnniversary(
 			.set({
 				title,
 				date,
-				type: cleanText(input.type, "annual"),
+				type,
 				description: optionalText(input.description),
 				isPrimary: Boolean(input.isPrimary),
 			})

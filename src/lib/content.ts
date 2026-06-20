@@ -9,6 +9,7 @@ import {
 	user,
 } from "@/db/schema";
 import { getDb } from "@/db/client";
+import { getNextAnniversaryDate } from "@/lib/date";
 import { storageKeyToMediaUrl } from "@/lib/r2";
 
 export type Visibility = "public" | "private";
@@ -427,21 +428,10 @@ export function getNextAnniversary(
 ) {
 	const candidates = items
 		.map((item) => {
-			const [month, day] = item.date.split("-").slice(1);
-			const year = now.getFullYear();
-			let nextDate = new Date(`${year}-${month}-${day}T00:00:00`);
-
-			if (item.type !== "annual") {
-				nextDate = new Date(`${item.date}T00:00:00`);
-			}
-
-			if (nextDate.getTime() < now.getTime()) {
-				nextDate = new Date(`${year + 1}-${month}-${day}T00:00:00`);
-			}
-
+			const nextDate = getNextAnniversaryDate(item.date, item.type, now);
 			return { item, nextDate };
 		})
-		.filter(({ nextDate }) => !Number.isNaN(nextDate.getTime()))
+		.filter((candidate): candidate is { item: MemoryAnniversary; nextDate: Date } => Boolean(candidate.nextDate))
 		.sort((left, right) => left.nextDate.getTime() - right.nextDate.getTime());
 
 	return candidates[0] ?? null;

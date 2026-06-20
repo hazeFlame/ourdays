@@ -2,7 +2,11 @@ import { CalendarHeart } from "lucide-react";
 
 import { NextAnniversary } from "@/components/home/next-anniversary";
 import { getAnniversaries } from "@/lib/content";
-import { formatDisplayDate, formatDisplayDateTime } from "@/lib/date";
+import {
+	formatAnniversaryDisplayDate,
+	formatDisplayDateTime,
+	getAnniversaryTypeLabel,
+} from "@/lib/date";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +46,7 @@ export default async function AnniversariesPage() {
 										) : null}
 									</div>
 									<p className="text-xs text-muted-foreground/80">
-										{formatDisplayDate(item.date)}
+										{formatAnniversaryDisplayDate(item.date, item.type)} · {getAnniversaryTypeLabel(item.type)}
 									</p>
 									{item.description ? (
 										<p className="text-xs leading-relaxed text-muted-foreground/90 pt-1">

@@ -5,7 +5,12 @@ import { CalendarHeart } from "lucide-react";
 
 import type { MemoryAnniversary } from "@/lib/content";
 import { getNextAnniversary } from "@/lib/content";
-import { formatDisplayDate } from "@/lib/date";
+import {
+	formatAnniversaryDisplayDate,
+	formatDisplayDate,
+	getAnniversaryTypeLabel,
+	isLunarAnniversaryType,
+} from "@/lib/date";
 
 export function NextAnniversary({
 	anniversaries,
@@ -28,6 +33,7 @@ export function NextAnniversary({
 			(next.nextDate.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)
 		)
 	);
+	const showOriginalDate = isLunarAnniversaryType(next.item.type);
 
 	return (
 		<div className="rounded-md border border-border/60 bg-card p-6">
@@ -41,6 +47,11 @@ export function NextAnniversary({
 					<p className="text-xs text-muted-foreground font-medium">
 						{formatDisplayDate(next.nextDate)}，还有 <span className="text-primary font-bold text-sm">{daysLeft}</span> 天
 					</p>
+					{showOriginalDate ? (
+						<p className="text-[10px] text-muted-foreground/70">
+							{formatAnniversaryDisplayDate(next.item.date, next.item.type)} · {getAnniversaryTypeLabel(next.item.type)}
+						</p>
+					) : null}
 					{next.item.description ? (
 						<p className="text-xs leading-relaxed text-muted-foreground/95 pt-1">
 							{next.item.description}
