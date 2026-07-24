@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "我们的情书",
+	title: "深夜的借口",
 	description: "一个收藏故事、照片、纪念日和情书的情侣纪念网站。",
 };
 
