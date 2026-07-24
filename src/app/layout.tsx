@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { FireworksOverlay } from "@/components/effects/fireworks-overlay";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -43,6 +44,7 @@ export default function RootLayout({
 							{children}
 						</main>
 						<SiteFooter />
+						<FireworksOverlay />
 					</div>
 				</ThemeProvider>
 			</body>
