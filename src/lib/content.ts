@@ -166,9 +166,9 @@ const fallbackAnniversaries: MemoryAnniversary[] = [
 ];
 
 const fallbackSettings: SiteSettings = {
-	siteTitle: "深夜的借口",
+	siteTitle: "淫荡的宁宁",
 	coupleNames: "你和我",
-	heroTitle: "深夜的借口",
+	heroTitle: "淫荡的宁宁",
 	heroSubtitle: "把相爱这件小事，认真收藏成一个会发光的地方。",
 	loveStartDate: "2024-05-20",
 	heroImageUrl: null,
