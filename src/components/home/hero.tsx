@@ -32,7 +32,7 @@ export function HomeHero({
 						unoptimized
 					/>
 				) : (
-					<div className="h-full w-full bg-[radial-gradient(circle_at_20%_20%,rgba(230,46,101,0.15)_0,transparent_45%),linear-gradient(135deg,var(--background)_0%,#fcf2f5_40%,#f7e6eb_100%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(230,46,101,0.18)_0,transparent_40%),linear-gradient(135deg,#0f0914_0%,#180e21_100%)]" />
+					<div className="h-full w-full bg-[radial-gradient(circle_at_20%_20%,rgba(197,168,128,0.12)_0,transparent_45%),linear-gradient(135deg,var(--background)_0%,#FAF9F6_40%,#F5F5F3_100%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(214,195,169,0.08)_0,transparent_40%),linear-gradient(135deg,#0C0A09_0%,#151311_100%)]" />
 				)}
 				<div className="absolute inset-0 bg-background/50 backdrop-blur-[1px]" />
 			</div>
@@ -75,9 +75,9 @@ export function HomeHero({
 					transition={{ delay: 0.1, duration: 0.8, ease: "easeOut" }}
 				>
 					{/* Decorative minimal card 1 */}
-					<div className="absolute left-6 top-8 h-64 w-48 rotate-[-6deg] rounded-md border border-border/30 bg-gradient-to-br from-[#f8e5ec] to-[#e8c6d4] dark:from-[#2a132c] dark:to-[#180d19] p-4 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] dark:shadow-none" />
+					<div className="absolute left-6 top-8 h-64 w-48 rotate-[-6deg] rounded-md border border-border/30 bg-gradient-to-br from-[#EFECE6] to-[#D9D4C7] dark:from-[#292524] dark:to-[#1C1917] p-4 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] dark:shadow-none" />
 					{/* Decorative minimal card 2 */}
-					<div className="absolute right-4 top-16 h-72 w-52 rotate-[5deg] rounded-md border border-border/30 bg-gradient-to-br from-[#f2daf0] via-[#e4c4e0] to-[#cb9dc3] dark:from-[#331737] dark:via-[#261029] dark:to-[#160a17] p-4 shadow-[0_12px_36px_-15px_rgba(0,0,0,0.12)] dark:shadow-none" />
+					<div className="absolute right-4 top-16 h-72 w-52 rotate-[5deg] rounded-md border border-border/30 bg-gradient-to-br from-[#EAE6DF] via-[#DFDCD5] to-[#C8C2B7] dark:from-[#292524] dark:via-[#221F1D] dark:to-[#181615] p-4 shadow-[0_12px_36px_-15px_rgba(0,0,0,0.12)] dark:shadow-none" />
 					
 					{/* Main love days tracker card */}
 					<Link

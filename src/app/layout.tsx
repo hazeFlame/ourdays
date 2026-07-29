@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "淫荡的宁宁",
+	title: "我们的情书",
 	description: "一个收藏故事、照片、纪念日和情书的情侣纪念网站。",
 };
 

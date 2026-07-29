@@ -9,10 +9,10 @@ import { formatDisplayDate, formatDisplayDateTime } from "@/lib/date";
 import { Button } from "@/components/ui/button";
 
 const fallbackGradients = [
-	"from-[#f8e5ec] to-[#e8c6d4] dark:from-[#2a132c] dark:to-[#180d19]",
-	"from-[#f2daf0] via-[#e4c4e0] to-[#cb9dc3] dark:from-[#331737] dark:to-[#160a17]",
-	"from-[#fceef4] to-[#ecc0d3] dark:from-[#261029] dark:to-[#120815]",
-	"from-[#f5e3eb] to-[#d69bb0] dark:from-[#2d1433] dark:to-[#180e21]",
+	"from-[#EFECE6] to-[#D9D4C7]",
+	"from-[#EAE6DF] via-[#DFDCD5] to-[#C8C2B7]",
+	"from-[#F2EDE4] to-[#E3D9C8]",
+	"from-[#EAEAEA] to-[#CCCCCC]",
 ];
 
 type PhotoGroup = {

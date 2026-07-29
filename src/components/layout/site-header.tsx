@@ -91,7 +91,7 @@ export function SiteHeader() {
 					<div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
 						<Heart className="size-4 fill-primary/10 stroke-[1.5]" />
 					</div>
-					<span className="text-xs font-semibold tracking-[0.2em] uppercase text-foreground/90">淫荡的宁宁</span>
+					<span className="text-xs font-semibold tracking-[0.2em] uppercase text-foreground/90">我们的情书</span>
 				</Link>
 
 				<nav className="hidden items-center gap-1 md:flex">
@@ -118,7 +118,7 @@ export function SiteHeader() {
 										onClick={() => setOpen(false)}
 									>
 										<Heart className="size-4 fill-primary/10 text-primary stroke-[1.5]" />
-										<span className="text-xs font-semibold tracking-[0.2em] uppercase text-foreground/90">淫荡的宁宁</span>
+										<span className="text-xs font-semibold tracking-[0.2em] uppercase text-foreground/90">我们的情书</span>
 									</Link>
 								</SheetTitle>
 							</SheetHeader>
